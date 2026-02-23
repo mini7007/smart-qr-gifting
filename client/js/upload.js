@@ -33,17 +33,25 @@ uploadForm.addEventListener('submit', async (event) => {
   resultEl.classList.add('hidden');
 
   try {
-    const data = await fetchJson('/gifts', {
+    const response = await fetch(`${API_BASE}/api/gifts`, {
       method: 'POST',
       body: formData
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Could not create gift right now.');
+    }
 
     qrImageEl.src = data.qr;
     openLinkEl.href = data.viewUrl;
     resultEl.classList.remove('hidden');
     setStatus('Gift created successfully. Save or share your QR code.');
-  } catch (error) {
-    setStatus(error.message || 'Could not create gift right now.', true);
+  } catch (err) {
+    console.error('QR generation failed:', err);
+    alert('Failed to generate QR. Please try again.');
+    setStatus(err.message || 'Could not create gift right now.', true);
   } finally {
     submitBtn.disabled = false;
   }

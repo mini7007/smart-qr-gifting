@@ -1,4 +1,7 @@
-const API_BASE = "https://smart-qr-gifting-production.up.railway.app/api";
+const API_BASE =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://smart-qr-gifting-production.up.railway.app';
 const REQUEST_TIMEOUT_MS = 20000;
 
 async function fetchJson(path, options = {}) {
@@ -6,7 +9,7 @@ async function fetchJson(path, options = {}) {
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(`${API_BASE}/api${path}`, {
       ...options,
       signal: controller.signal,
       headers: {
