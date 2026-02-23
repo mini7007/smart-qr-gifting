@@ -7,8 +7,7 @@ const giftRoutes = require('./routes/giftRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0';
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
-const MONGODB_URI = process.env.MONGODB_URI;
+const DEFAULT_VERCEL_ORIGIN = 'https://smart-qr-gifting.vercel.app';
 
 let mongoReady = false;
 
@@ -22,7 +21,21 @@ process.on('uncaughtException', (error) => {
 
 app.use(
   cors({
-    origin: CLIENT_ORIGIN,
+    origin(origin, callback) {
+      const allowedOrigins = [
+        process.env.CLIENT_ORIGIN,
+        process.env.VERCEL_FRONTEND_URL,
+        DEFAULT_VERCEL_ORIGIN,
+        'http://localhost:3000'
+      ].filter(Boolean);
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST']
   })
 );
@@ -69,26 +82,25 @@ mongoose.connection.on('error', (error) => {
   console.error('[mongo] Connection error:', error.message);
 });
 
-async function connectMongoWithRetry() {
-  if (!MONGODB_URI) {
-    console.error('[boot] MONGODB_URI is not set. API will run without database connectivity.');
-    return;
+async function startServer() {
+  const mongoUri = process.env.MONGODB_URI;
+
+  if (!mongoUri) {
+    console.warn('Mongo connection failed: MONGODB_URI is not set. Starting API without database connection.');
+  } else {
+    try {
+      await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 5000
+      });
+      console.log('Mongo connected');
+    } catch (error) {
+      console.error('Mongo connection failed', error.message);
+    }
   }
 
-  try {
-    console.log('[boot] Connecting to MongoDB...');
-    await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000
-    });
-  } catch (error) {
-    mongoReady = false;
-    console.error('[mongo] Initial connection failed:', error.message);
-    console.log('[mongo] Retrying MongoDB connection in 5 seconds...');
-    setTimeout(connectMongoWithRetry, 5000);
-  }
+  app.listen(PORT, HOST, () => {
+    console.log(`[boot] Server listening on ${HOST}:${PORT}`);
+  });
 }
 
-app.listen(PORT, HOST, () => {
-  console.log(`[boot] Server listening on ${HOST}:${PORT}`);
-  connectMongoWithRetry();
-});
+startServer();

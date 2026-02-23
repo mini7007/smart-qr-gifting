@@ -33,7 +33,7 @@ uploadForm.addEventListener('submit', async (event) => {
   resultEl.classList.add('hidden');
 
   try {
-    const data = await fetchJson('/api/gifts', {
+    const data = await fetchJson('/gifts', {
       method: 'POST',
       body: formData
     });
