@@ -5,13 +5,21 @@ const videoEl = document.getElementById('videoPlayer');
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 
-const API_BASE = window.location.origin.includes('localhost:3000')
-  ? 'http://localhost:5000'
-  : window.location.origin;
-
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle('error', isError);
+}
+
+function resolveMediaUrl(videoUrl) {
+  if (!videoUrl) {
+    return '';
+  }
+
+  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+    return videoUrl;
+  }
+
+  return `${API_BASE}${videoUrl}`;
 }
 
 async function loadGift() {
@@ -21,17 +29,12 @@ async function loadGift() {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/api/gifts/${encodeURIComponent(id)}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Gift not available.');
-    }
+    const data = await fetchJson(`/api/gifts/${encodeURIComponent(id)}`);
 
     messageEl.textContent = data.message;
 
     if (data.videoUrl) {
-      videoEl.src = `${API_BASE}${data.videoUrl}`;
+      videoEl.src = resolveMediaUrl(data.videoUrl);
       videoEl.classList.remove('hidden');
     }
 
