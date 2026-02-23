@@ -66,7 +66,7 @@ app.use('/uploads', express.static(uploadsDir));
 
 /* -------------------- Health check -------------------- */
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({ status: 'ok' });
 });
 
 /* -------------------- Mongo guard -------------------- */
