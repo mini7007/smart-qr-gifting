@@ -6,7 +6,6 @@ const giftRoutes = require('./routes/giftRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const HOST = '0.0.0.0';
 const DEFAULT_VERCEL_ORIGIN = 'https://smart-qr-gifting.vercel.app';
 
 let mongoReady = false;
@@ -69,7 +68,7 @@ app.use((err, _req, res, _next) => {
 
 mongoose.connection.on('connected', () => {
   mongoReady = true;
-  console.log('[mongo] Connected successfully.');
+  console.log('Mongo connected');
 });
 
 mongoose.connection.on('disconnected', () => {
@@ -83,23 +82,19 @@ mongoose.connection.on('error', (error) => {
 });
 
 async function startServer() {
-  const mongoUri = process.env.MONGODB_URI;
-
-  if (!mongoUri) {
+  if (!process.env.MONGODB_URI) {
     console.warn('Mongo connection failed: MONGODB_URI is not set. Starting API without database connection.');
   } else {
     try {
-      await mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 5000
-      });
-      console.log('Mongo connected');
+      await mongoose.connect(process.env.MONGODB_URI);
     } catch (error) {
       console.error('Mongo connection failed', error.message);
     }
   }
 
-  app.listen(PORT, HOST, () => {
-    console.log(`[boot] Server listening on ${HOST}:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('[boot] Server started');
   });
 }
 
