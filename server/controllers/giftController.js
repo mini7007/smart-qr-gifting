@@ -7,6 +7,9 @@ function buildPublicBaseUrl(req) {
 
 async function createGift(req, res) {
   try {
+    console.log('[gift] body:', req.body);
+    console.log('[gift] file:', req.file?.filename);
+
     const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
     if (!message) {
       return res.status(400).json({ error: 'Message is required.' });
