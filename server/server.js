@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -6,9 +7,15 @@ const giftRoutes = require('./routes/giftRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const DEFAULT_VERCEL_ORIGIN = 'https://smart-qr-gifting.vercel.app';
+const uploadsDir = path.resolve(__dirname, '..', 'uploads');
 
 let mongoReady = false;
+
+function ensureUploadsDir() {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+}
 
 process.on('unhandledRejection', (reason) => {
   console.error('[boot] Unhandled promise rejection:', reason);
@@ -18,31 +25,24 @@ process.on('uncaughtException', (error) => {
   console.error('[boot] Uncaught exception:', error);
 });
 
+app.use((req, res, next) => {
+  console.log(`[req] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(
   cors({
-    origin(origin, callback) {
-      const allowedOrigins = [
-        process.env.CLIENT_ORIGIN,
-        process.env.VERCEL_FRONTEND_URL,
-        DEFAULT_VERCEL_ORIGIN,
-        'http://localhost:3000'
-      ]
-        .filter(Boolean)
-        .map((allowedOrigin) => allowedOrigin.replace(/\/$/, ''));
-      const requestOrigin = origin ? origin.replace(/\/$/, '') : origin;
-
-      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error('Not allowed by CORS'));
-    },
-    methods: ['GET', 'POST']
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 app.use(express.json());
-app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')));
+app.use(express.urlencoded({ extended: true }));
+
+ensureUploadsDir();
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
@@ -59,14 +59,9 @@ app.use('/api/gifts', (req, res, next) => {
 app.use('/api/gifts', giftRoutes);
 
 app.use((err, _req, res, _next) => {
-  const status = err.status || 500;
-  const message = err.message || 'Unexpected server error';
-
-  if (status >= 500) {
-    console.error('[request] Unhandled error:', err);
-  }
-
-  res.status(status).json({ error: message });
+  const message = err && err.message ? err.message : 'Unexpected server error';
+  console.error('[request] Unhandled error:', err);
+  res.status(500).json({ error: message });
 });
 
 mongoose.connection.on('connected', () => {
