@@ -1,13 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>View Gift</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Gift | Smart QR Gifting</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <h2>Your Surprise 🎁</h2>
-  <video id="videoPlayer" controls autoplay style="max-width:100%"></video>
-  <p id="giftMessage"></p>
+  <main class="page viewer-page">
+    <section class="card viewer-card">
+      <h1>Your surprise 🎁</h1>
+      <p id="viewerStatus" class="status" aria-live="polite">Loading your gift...</p>
+
+      <video id="videoPlayer" class="gift-video hidden" controls playsinline preload="metadata"></video>
+      <p id="giftMessage" class="gift-message"></p>
+    </section>
+  </main>
   <script src="js/view.js"></script>
 </body>
 </html>
