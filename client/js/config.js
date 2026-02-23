@@ -1,4 +1,4 @@
-const API_BASE = "https://smart-qr-gifting-production.up.railway.app";
+const API_BASE = "https://smart-qr-gifting-production.up.railway.app/api";
 const REQUEST_TIMEOUT_MS = 20000;
 
 async function fetchJson(path, options = {}) {

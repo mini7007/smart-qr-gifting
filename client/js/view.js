@@ -19,7 +19,7 @@ function resolveMediaUrl(videoUrl) {
     return videoUrl;
   }
 
-  return `${API_BASE}${videoUrl}`;
+  return `${API_BASE.replace(/\/api$/, '')}${videoUrl}`;
 }
 
 async function loadGift() {
@@ -29,7 +29,7 @@ async function loadGift() {
   }
 
   try {
-    const data = await fetchJson(`/api/gifts/${encodeURIComponent(id)}`);
+    const data = await fetchJson(`/gifts/${encodeURIComponent(id)}`);
 
     messageEl.textContent = data.message;
 
