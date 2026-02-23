@@ -5,10 +5,6 @@ const qrImageEl = document.getElementById('qrImage');
 const openLinkEl = document.getElementById('openLink');
 const submitBtn = document.getElementById('submitBtn');
 
-const API_BASE = window.location.origin.includes('localhost:3000')
-  ? 'http://localhost:5000'
-  : window.location.origin;
-
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle('error', isError);
@@ -37,15 +33,10 @@ uploadForm.addEventListener('submit', async (event) => {
   resultEl.classList.add('hidden');
 
   try {
-    const response = await fetch(`${API_BASE}/api/gifts`, {
+    const data = await fetchJson('/api/gifts', {
       method: 'POST',
       body: formData
     });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to generate QR code.');
-    }
 
     qrImageEl.src = data.qr;
     openLinkEl.href = data.viewUrl;
