@@ -26,9 +26,12 @@ app.use(
         process.env.VERCEL_FRONTEND_URL,
         DEFAULT_VERCEL_ORIGIN,
         'http://localhost:3000'
-      ].filter(Boolean);
+      ]
+        .filter(Boolean)
+        .map((allowedOrigin) => allowedOrigin.replace(/\/$/, ''));
+      const requestOrigin = origin ? origin.replace(/\/$/, '') : origin;
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
         callback(null, true);
         return;
       }
