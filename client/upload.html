@@ -48,6 +48,26 @@
           <label for="video" data-i18n="upload.videoLabel"></label>
           <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
 
+          <section id="audioRecorderPanel" class="audio-recorder hidden" aria-live="polite">
+            <div class="audio-recorder-head">
+              <p class="audio-title">🎤 Audio Gift Recorder</p>
+              <span id="recordingTimer" class="recording-timer" aria-label="Recording timer">00:00</span>
+            </div>
+
+            <div class="audio-actions">
+              <button id="recordBtn" type="button" class="audio-btn audio-btn-record">
+                <span id="recordPulse" class="record-pulse" aria-hidden="true"></span>
+                Record
+              </button>
+              <button id="stopBtn" type="button" class="audio-btn button-secondary" disabled>Stop</button>
+              <button id="reRecordBtn" type="button" class="audio-btn button-secondary hidden" disabled>Re-record</button>
+            </div>
+
+            <p id="audioError" class="audio-error hidden" role="alert"></p>
+
+            <audio id="audioPreview" class="audio-preview hidden" controls preload="metadata"></audio>
+          </section>
+
           <div id="uploadProgressWrap" class="progress-wrap hidden" aria-live="polite">
             <div class="progress-bar"><span id="uploadProgressBar"></span></div>
             <small id="uploadProgressText">0%</small>

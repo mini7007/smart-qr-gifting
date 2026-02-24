@@ -115,6 +115,85 @@ button:focus-visible, .button-link:focus-visible, textarea:focus-visible, input:
 .upload-tab.active { background: var(--gradient); color: #fff; border-color: transparent; }
 
 .empty-state { border: 1px dashed var(--border); border-radius: 12px; padding: 0.8rem; color: var(--muted); margin-bottom: 0.8rem; }
+
+.audio-recorder {
+  margin-top: 0.6rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(14px);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.audio-recorder-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.audio-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.recording-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+}
+
+.audio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.audio-btn {
+  flex: 1 1 140px;
+  min-height: 44px;
+}
+
+.audio-btn-record {
+  position: relative;
+}
+
+.record-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55);
+}
+
+.audio-btn-record.is-recording .record-pulse {
+  animation: pulse 1.2s ease-out infinite;
+}
+
+.audio-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+  box-shadow: none;
+}
+
+.audio-preview {
+  width: 100%;
+}
+
+.audio-error {
+  margin: 0;
+  color: var(--error);
+  font-size: 0.9rem;
+}
+
 .progress-wrap { display: grid; gap: 0.3rem; }
 .progress-bar { height: 8px; background: rgba(148, 163, 184, 0.24); border-radius: 999px; overflow: hidden; }
 .progress-bar span { display: block; height: 100%; width: 0; background: var(--gradient); transition: width 160ms ease; }
@@ -159,6 +238,11 @@ button:focus-visible, .button-link:focus-visible, textarea:focus-visible, input:
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes dots { 0% { content: ' .'; } 33% { content: ' ..'; } 66% { content: ' ...'; } 100% { content: ' ....'; } }
 @keyframes burst { 0% { opacity: 0; transform: translateY(8px) scale(.7); } 50% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-5px) scale(1); } }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); transform: scale(1); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); transform: scale(1.08); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
+}
 
 @media (min-width: 768px) {
   .hero { grid-template-columns: 1.35fr 1fr; align-items: center; }
@@ -166,4 +250,5 @@ button:focus-visible, .button-link:focus-visible, textarea:focus-visible, input:
 }
 @media (max-width: 767px) {
   button, .button-link { width: 100%; }
+  .audio-actions .audio-btn { width: 100%; }
 }

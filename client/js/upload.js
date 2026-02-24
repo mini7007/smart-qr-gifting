@@ -13,9 +13,22 @@ const progressText = document.getElementById('uploadProgressText');
 const successConfetti = document.getElementById('successConfetti');
 const tabs = document.querySelectorAll('.upload-tab');
 const futureHint = document.getElementById('futureUploaderHint');
+const audioRecorderPanel = document.getElementById('audioRecorderPanel');
+const recordBtn = document.getElementById('recordBtn');
+const stopBtn = document.getElementById('stopBtn');
+const reRecordBtn = document.getElementById('reRecordBtn');
+const audioPreview = document.getElementById('audioPreview');
+const recordingTimer = document.getElementById('recordingTimer');
+const audioError = document.getElementById('audioError');
 
 let latestGiftUrl = '';
 let latestQrDataUrl = '';
+let mediaRecorder = null;
+let recordingChunks = [];
+let recordingTimerId = null;
+let recordingSeconds = 0;
+let audioBlob = null;
+let audioStream = null;
 
 function t(key) {
   return window.smartQRI18n ? window.smartQRI18n.t(key) : key;
@@ -38,6 +51,167 @@ function setLoadingState(isLoading) {
 function setProgress(percent) {
   progressBar.style.width = `${Math.max(5, percent)}%`;
   progressText.textContent = `${Math.round(percent)}%`;
+}
+
+
+function formatRecordingTime(totalSeconds) {
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+function setAudioError(message = '') {
+  const hasError = Boolean(message);
+  audioError.textContent = message;
+  audioError.classList.toggle('hidden', !hasError);
+}
+
+function setRecorderButtons({ isRecording = false, hasRecording = false } = {}) {
+  recordBtn.disabled = isRecording;
+  stopBtn.disabled = !isRecording;
+  reRecordBtn.disabled = isRecording || !hasRecording;
+  reRecordBtn.classList.toggle('hidden', !hasRecording);
+  recordBtn.classList.toggle('is-recording', isRecording);
+}
+
+function resetRecordingTimer() {
+  recordingSeconds = 0;
+  recordingTimer.textContent = formatRecordingTime(recordingSeconds);
+}
+
+function startRecordingTimer() {
+  clearInterval(recordingTimerId);
+  recordingTimerId = window.setInterval(() => {
+    recordingSeconds += 1;
+    recordingTimer.textContent = formatRecordingTime(recordingSeconds);
+  }, 1000);
+}
+
+function stopRecordingTimer() {
+  clearInterval(recordingTimerId);
+  recordingTimerId = null;
+}
+
+function clearAudioPreview() {
+  if (audioPreview.dataset.objectUrl) {
+    URL.revokeObjectURL(audioPreview.dataset.objectUrl);
+    delete audioPreview.dataset.objectUrl;
+  }
+  audioPreview.pause();
+  audioPreview.removeAttribute('src');
+  audioPreview.load();
+  audioPreview.classList.add('hidden');
+}
+
+function showAudioPreview(blob) {
+  clearAudioPreview();
+  const objectUrl = URL.createObjectURL(blob);
+  audioPreview.src = objectUrl;
+  audioPreview.dataset.objectUrl = objectUrl;
+  audioPreview.classList.remove('hidden');
+}
+
+function stopMediaTracks() {
+  if (!audioStream) return;
+  audioStream.getTracks().forEach((track) => track.stop());
+  audioStream = null;
+}
+
+async function startRecording() {
+  setAudioError('');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    setAudioError('Audio recording is not supported in this browser.');
+    return;
+  }
+
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const options = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? { mimeType: 'audio/webm;codecs=opus' }
+      : {};
+
+    mediaRecorder = new MediaRecorder(audioStream, options);
+    recordingChunks = [];
+
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data && event.data.size > 0) {
+        recordingChunks.push(event.data);
+      }
+    });
+
+    mediaRecorder.addEventListener('stop', () => {
+      stopRecordingTimer();
+      stopMediaTracks();
+
+      if (!recordingChunks.length) {
+        setRecorderButtons({ isRecording: false, hasRecording: false });
+        setAudioError('No audio was captured. Please try recording again.');
+        return;
+      }
+
+      audioBlob = new Blob(recordingChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      showAudioPreview(audioBlob);
+      setRecorderButtons({ isRecording: false, hasRecording: true });
+    });
+
+    mediaRecorder.addEventListener('error', () => {
+      stopRecordingTimer();
+      stopMediaTracks();
+      setRecorderButtons({ isRecording: false, hasRecording: Boolean(audioBlob) });
+      setAudioError('Recording failed. Please try again.');
+    });
+
+    audioBlob = null;
+    clearAudioPreview();
+    resetRecordingTimer();
+    setRecorderButtons({ isRecording: true, hasRecording: false });
+    startRecordingTimer();
+    mediaRecorder.start();
+  } catch (error) {
+    stopRecordingTimer();
+    stopMediaTracks();
+    setRecorderButtons({ isRecording: false, hasRecording: Boolean(audioBlob) });
+    if (error && (error.name === 'NotAllowedError' || error.name === 'SecurityError')) {
+      setAudioError('Microphone permission was denied. Please allow microphone access to record.');
+    } else {
+      setAudioError('Unable to access microphone. Please check your audio settings.');
+    }
+  }
+}
+
+function stopRecording() {
+  if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+  mediaRecorder.stop();
+}
+
+function resetAudioRecording() {
+  audioBlob = null;
+  recordingChunks = [];
+  stopRecordingTimer();
+  resetRecordingTimer();
+  clearAudioPreview();
+  setAudioError('');
+  setRecorderButtons({ isRecording: false, hasRecording: false });
+}
+
+function initAudioRecorder() {
+  if (!recordBtn || !stopBtn || !reRecordBtn || !audioPreview) return;
+
+  resetAudioRecording();
+
+  recordBtn.addEventListener('click', () => {
+    if (recordBtn.disabled) return;
+    startRecording();
+  });
+
+  stopBtn.addEventListener('click', () => {
+    stopRecording();
+  });
+
+  reRecordBtn.addEventListener('click', () => {
+    resetAudioRecording();
+  });
 }
 
 function createGift(formData) {
@@ -85,8 +259,10 @@ function initTabs() {
       tab.setAttribute('aria-selected', 'true');
 
       const isVideo = tab.dataset.tab === 'video' || tab.dataset.tab === 'text';
-      futureHint.classList.toggle('hidden', isVideo);
+      const isAudio = tab.dataset.tab === 'audio';
+      futureHint.classList.toggle('hidden', isVideo || isAudio);
       document.getElementById('video').disabled = tab.dataset.tab !== 'video' && tab.dataset.tab !== 'text';
+      audioRecorderPanel.classList.toggle('hidden', !isAudio);
     });
   });
 }
@@ -107,6 +283,10 @@ uploadForm.addEventListener('submit', async (event) => {
 
   if (file) {
     formData.append('video', file);
+  }
+
+  if (audioBlob) {
+    formData.append('audio', audioBlob, 'recording.webm');
   }
 
   setLoadingState(true);
@@ -181,3 +361,4 @@ document.addEventListener('smartqr:languagechange', () => {
 });
 
 initTabs();
+initAudioRecorder();
