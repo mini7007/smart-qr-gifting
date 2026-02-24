@@ -2,43 +2,34 @@
 
 Smart QR Gifting lets users create heartfelt digital gifts and share them with QR codes and private links.
 
-## 🤖 Mini Panda AI Assistant
+## ✨ Core Features
 
-Mini Panda is a floating multilingual assistant available in the frontend UI.
+- QR-based gift delivery
+- Text + optional media uploads (video/audio/image/GIF)
+- Secure public gift tokens
+- PWA-ready frontend
+- Multilingual-safe message handling
 
-- Glassmorphism mobile-first widget
-- Suggestion chips + typing indicator
-- Session limit notice (3 AI tries per session)
-- AI chat support for gift wording and theme-aware ideas
+## ✨ Smart Message Enhancer (Free Mode)
 
-## 🔐 Secure AI Proxy
+Smart QR Gifting now includes a **free smart message enhancer** (no paid AI required).
 
-All AI calls run through backend Express routes (never from frontend keys):
-
-- `POST /api/ai/chat`
-- `POST /api/ai/generate-message`
-- `POST /api/ai/generate-image`
-
-Security + operational safeguards:
-
-- OpenAI key is only read from `process.env.OPENAI_API_KEY`
-- Per-session request cap: **3 requests**
-- 429 returned when the session limit is exceeded
-- Structured error handling and logging
-
-## 🌍 Multilingual Support
-
-- User input supports UTF-8 text in all languages/scripts
-- AI is prompted to respond in the user’s language
-- No forced English output
+- Works fully without paid AI APIs
+- Preserves the user’s original language/script (multilingual safe)
+- Applies light grammar cleanup, capitalization polish, and tasteful theme emojis
+- Stores both `originalMessage` and `enhancedMessage` for modular evolution
+- Uses a client-side preview mirror for low-latency UX (debounced)
+- Architecture stays AI-ready for future upgrades
+- Gift result page is future AR ready (`#ar-stage` placeholder)
 
 ## 🎨 Gift Themes
 
 Theme-aware creation + viewing:
 
-- **Birthday**: confetti-like visuals, reveal motion, floating particles
-- **Love**: warm gradients and softer palette
-- **Festival**: vibrant glow styling
+- **Birthday**
+- **Love / Romantic**
+- **Festival / Corporate**
+- **Default surprise**
 
 ## 🖼️ Smart Media Pipeline
 
@@ -48,21 +39,13 @@ Upload page enhancements:
 - Visual drag highlight states
 - Smart image compression via canvas before upload
 - GIF size warning flow
-- Video size validation (no heavy client processing)
-
-## ✨ Core Features
-
-- QR-based gift delivery
-- Text + optional media uploads (video/audio/image/GIF)
-- Secure public gift tokens
-- PWA-ready frontend
+- Video size validation
 
 ## 🏗️ Tech Stack
 
 - Node.js + Express
 - MongoDB + Mongoose
 - Multer
-- OpenAI Node SDK
 - Vercel (frontend) + Railway (backend)
 
 ## 🚀 Environment Setup
@@ -72,7 +55,6 @@ Create `.env` in project root:
 ```bash
 MONGODB_URI=mongodb://localhost:27017/smart-qr-gifting
 PORT=5000
-OPENAI_API_KEY=your_openai_api_key_here
 # Optional for deployment URL generation:
 RAILWAY_PUBLIC_DOMAIN=your-app.up.railway.app
 ```
@@ -81,7 +63,7 @@ Install and run:
 
 ```bash
 npm install
-npm start
+npm run dev
 ```
 
 Health check:
@@ -101,19 +83,10 @@ Fetch gift JSON payload.
 ### `GET /gift/:publicId`
 Render gift page experience.
 
-### `POST /api/ai/chat`
-AI assistant chat response.
-
-### `POST /api/ai/generate-message`
-Refines partial message input (same language).
-
-### `POST /api/ai/generate-image`
-Generates themed image output (URL/base64 when available).
-
 ## 🚀 Future Roadmap
 
+- Optional AI provider integrations (modular)
+- WebAR gift surface placement
 - Neural TTS integration
-- AI voice personas
 - Theme packs + seasonal animations
 - Gift analytics + campaign templates
-- Optional expiring gift links

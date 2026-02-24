@@ -15,6 +15,16 @@ const GiftSchema = new mongoose.Schema(
       trim: true,
       maxlength: [300, 'Message must be 300 characters or less']
     },
+    originalMessage: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    enhancedMessage: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     videoUrl: {
       type: String,
       default: ''

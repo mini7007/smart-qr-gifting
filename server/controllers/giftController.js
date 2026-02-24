@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Gift = require('../models/Gift');
 const { generateQrDataUrl } = require('../utils/qrGenerator');
 const { generateGiftToken } = require('../utils/giftToken');
+const { enhanceGiftMessage } = require('../utils/textEnhancer');
 
 function buildPublicBaseUrl(req) {
   return process.env.RAILWAY_PUBLIC_DOMAIN
@@ -48,8 +49,8 @@ async function createGift(req, res) {
       gif: !!gifFile
     });
 
-    const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
-    if (!message) {
+    const originalMessage = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+    if (!originalMessage) {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
@@ -58,9 +59,13 @@ async function createGift(req, res) {
       ? rawTheme
       : 'default';
 
+    const enhancedMessage = enhanceGiftMessage(originalMessage, theme);
+
     const gift = new Gift({
       publicId: await createUniqueGiftToken(),
-      message,
+      message: enhancedMessage,
+      originalMessage,
+      enhancedMessage,
       videoUrl: videoFile ? `/uploads/${videoFile.filename}` : '',
       audioUrl: audioFile ? `/uploads/${audioFile.filename}` : '',
       imageUrl: imageFile ? `/uploads/${imageFile.filename}` : '',
@@ -76,7 +81,8 @@ async function createGift(req, res) {
     return res.status(200).json({
       success: true,
       qr,
-      viewUrl
+      viewUrl,
+      enhancedMessage
     });
   } catch (error) {
     const message = error && error.message ? error.message : 'Unexpected server error';
@@ -95,7 +101,9 @@ async function getGift(req, res) {
 
     return res.json({
       id: gift.publicId || gift._id,
-      message: gift.message,
+      message: gift.enhancedMessage || gift.message,
+      originalMessage: gift.originalMessage || gift.message,
+      enhancedMessage: gift.enhancedMessage || gift.message,
       videoUrl: gift.videoUrl,
       audioUrl: gift.audioUrl,
       imageUrl: gift.imageUrl,

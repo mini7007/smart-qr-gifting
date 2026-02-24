@@ -86,50 +86,6 @@ function ensureOpenAI(res) {
 
 router.use(enforceAiSessionLimit);
 
-router.post('/chat', async (req, res) => {
-  if (!ensureOpenAI(res)) return;
-
-  try {
-    const { message, theme } = req.body || {};
-    if (typeof message !== 'string' || !message.trim()) {
-      return res.status(400).json({ error: 'message is required.' });
-    }
-
-    const response = await openai.responses.create({
-      model: 'gpt-4o-mini',
-      input: [
-        {
-          role: 'system',
-          content: [
-            {
-              type: 'input_text',
-              text: 'You are Mini Panda, a warm and practical multilingual gift assistant. Reply in the user\'s language, provide concise guidance, and keep tone friendly and celebratory.'
-            }
-          ]
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'input_text',
-              text: `Theme: ${theme || 'default'}\nMessage: ${message.trim()}`
-            }
-          ]
-        }
-      ]
-    });
-
-    const triesUsed = trackUsage(req.aiSessionId);
-    return res.status(200).json({
-      reply: response.output_text || '✨',
-      triesUsed,
-      triesLeft: Math.max(0, MAX_REQUESTS_PER_SESSION - triesUsed)
-    });
-  } catch (error) {
-    console.error('[ai/chat] Failed:', error);
-    return res.status(500).json({ error: 'Unable to process AI chat right now.' });
-  }
-});
 
 router.post('/generate-message', async (req, res) => {
   if (!ensureOpenAI(res)) return;
@@ -148,7 +104,7 @@ router.post('/generate-message', async (req, res) => {
           content: [
             {
               type: 'input_text',
-              text: 'Improve gift messages. Auto-detect the input language and return only one polished message in the same language and script. Keep it heartfelt and concise.'
+              text: 'Improve gift messages. Keep the original language and script. Return one polished heartfelt message with concise wording.'
             }
           ]
         },

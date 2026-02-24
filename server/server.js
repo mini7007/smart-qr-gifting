@@ -4,7 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const giftRoutes = require('./routes/giftRoutes');
-const aiChatRoutes = require('./routes/aiChat');
 const Gift = require('./models/Gift');
 const { buildGiftLookupQuery } = require('./controllers/giftController');
 
@@ -101,6 +100,7 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl, theme =
         white-space: pre-wrap;
         text-align: center;
       }
+      #ar-stage { margin-top: 14px; min-height: 4px; }
       .video-wrap { margin-top: 20px; }
       video { width: 100%; max-height: 420px; border-radius: 14px; background: #000; }
       img, audio { width: 100%; margin-top: 20px; border-radius: 14px; }
@@ -114,6 +114,8 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl, theme =
     <main class="card ${birthdayMode ? 'birthday-card' : ''}">
       <h1>Your Gift</h1>
       <p class="message">${safeMessage}</p>
+      <!-- FUTURE: WebAR surface placement will render media here -->
+      <div id="ar-stage"></div>
       ${hasImage ? `<img alt="Gift image" loading="lazy" src="${safeImageUrl}" />` : ''}
       ${hasGif ? `<img alt="Gift GIF" loading="lazy" src="${safeGifUrl}" />` : ''}
       ${hasVideo ? `<div class="video-wrap"><video controls playsinline preload="metadata" src="${safeVideoUrl}"></video></div>` : ''}
@@ -273,7 +275,6 @@ app.use('/api/gifts', (req, res, next) => {
 });
 
 app.use('/api/gifts', giftRoutes);
-app.use('/api/ai', aiChatRoutes);
 
 /* -------------------- Error handler -------------------- */
 app.use((err, _req, res, _next) => {
