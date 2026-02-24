@@ -1,27 +1,8 @@
 const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { createGift, getGift } = require('../controllers/giftController');
+const { upload, validateUploadedFileSizes } = require('../utils/upload');
 
-const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 30 * 1024 * 1024 }
-});
+const router = express.Router();
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch((error) => {
@@ -34,10 +15,13 @@ router.post(
   '/',
   upload.fields([
     { name: 'video', maxCount: 1 },
-    { name: 'audio', maxCount: 1 }
+    { name: 'audio', maxCount: 1 },
+    { name: 'image', maxCount: 1 },
+    { name: 'gif', maxCount: 1 }
   ]),
+  validateUploadedFileSizes,
   asyncRoute(createGift)
 );
-router.get('/:id', asyncRoute(getGift));
+router.get('/:publicId', asyncRoute(getGift));
 
 module.exports = router;

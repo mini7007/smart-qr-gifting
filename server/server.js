@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const giftRoutes = require('./routes/giftRoutes');
 const Gift = require('./models/Gift');
+const { buildGiftLookupQuery } = require('./controllers/giftController');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -39,10 +40,17 @@ function escapeHtml(input) {
     .replace(/'/g, '&#39;');
 }
 
-function renderGiftPage({ message, videoUrl }) {
+function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
   const safeMessage = escapeHtml(message);
   const hasVideo = typeof videoUrl === 'string' && videoUrl.trim().length > 0;
+  const hasAudio = typeof audioUrl === 'string' && audioUrl.trim().length > 0;
+  const hasImage = typeof imageUrl === 'string' && imageUrl.trim().length > 0;
+  const hasGif = typeof gifUrl === 'string' && gifUrl.trim().length > 0;
+
   const safeVideoUrl = hasVideo ? encodeURI(videoUrl) : '';
+  const safeAudioUrl = hasAudio ? encodeURI(audioUrl) : '';
+  const safeImageUrl = hasImage ? encodeURI(imageUrl) : '';
+  const safeGifUrl = hasGif ? encodeURI(gifUrl) : '';
 
   return `<!doctype html>
 <html lang="en">
@@ -108,6 +116,12 @@ function renderGiftPage({ message, videoUrl }) {
         background: #000;
       }
 
+      img, audio {
+        width: 100%;
+        margin-top: 20px;
+        border-radius: 14px;
+      }
+
       @media (max-width: 480px) {
         .card {
           padding: 18px;
@@ -124,11 +138,10 @@ function renderGiftPage({ message, videoUrl }) {
     <main class="card">
       <h1>Your Gift</h1>
       <p class="message">${safeMessage}</p>
-      ${
-        hasVideo
-          ? `<div class="video-wrap"><video controls playsinline preload="metadata" src="${safeVideoUrl}"></video></div>`
-          : ''
-      }
+      ${hasImage ? `<img alt="Gift image" loading="lazy" src="${safeImageUrl}" />` : ''}
+      ${hasGif ? `<img alt="Gift GIF" loading="lazy" src="${safeGifUrl}" />` : ''}
+      ${hasVideo ? `<div class="video-wrap"><video controls playsinline preload="metadata" src="${safeVideoUrl}"></video></div>` : ''}
+      ${hasAudio ? `<audio controls preload="metadata" src="${safeAudioUrl}"></audio>` : ''}
     </main>
   </body>
 </html>`;
@@ -220,14 +233,14 @@ app.get('/api/health', (_req, res) => {
 });
 
 /* -------------------- Gift view page -------------------- */
-app.get('/gift/:id', async (req, res) => {
+app.get('/gift/:publicId', async (req, res) => {
   try {
     if (!mongoReady) {
       return res.status(503).type('html').send(`<!doctype html><html><body><h1>Service temporarily unavailable</h1><p>Please try again shortly.</p></body></html>`);
     }
 
-    const { id } = req.params;
-    const gift = await Gift.findById(id).lean();
+    const { publicId } = req.params;
+    const gift = await Gift.findOne(buildGiftLookupQuery(publicId)).lean();
 
     if (!gift) {
       return res.status(404).type('html').send(renderNotFoundPage());
@@ -236,7 +249,10 @@ app.get('/gift/:id', async (req, res) => {
     return res.status(200).type('html').send(
       renderGiftPage({
         message: gift.message,
-        videoUrl: gift.videoUrl
+        videoUrl: gift.videoUrl,
+        audioUrl: gift.audioUrl,
+        imageUrl: gift.imageUrl,
+        gifUrl: gift.gifUrl
       })
     );
   } catch (error) {
@@ -260,8 +276,11 @@ app.use('/api/gifts', giftRoutes);
 /* -------------------- Error handler -------------------- */
 app.use((err, _req, res, _next) => {
   const message = err?.message || 'Unexpected server error';
+  const isClientUploadError = err?.name === 'MulterError' || message.toLowerCase().includes('unsupported file type');
+  const statusCode = isClientUploadError ? 400 : 500;
+
   console.error('[request] Unhandled error:', err);
-  res.status(500).json({ error: message });
+  res.status(statusCode).json({ error: message });
 });
 
 /* -------------------- Mongo events -------------------- */
