@@ -13,55 +13,97 @@ function setStatus(message, isError = false) {
   statusEl.classList.toggle('error', isError);
 }
 
-function sanitizeTheme(theme) {
-  const normalized = (theme || 'default').toLowerCase();
-  const aliases = {
-    love: 'wedding',
-    romantic: 'wedding',
-    festival: 'corporate'
+function getTheme(themeName) {
+  const resolved = window.resolveGiftTheme ? window.resolveGiftTheme(themeName) : 'default';
+  return {
+    name: resolved,
+    config: THEME_CONFIG[resolved] || THEME_CONFIG.default
   };
-  const resolved = aliases[normalized] || normalized;
-  return THEME_CONFIG[resolved] ? resolved : 'default';
 }
 
-function applyThemeExperience(theme) {
-  const normalizedTheme = sanitizeTheme(theme);
-  const themeToken = THEME_CONFIG[normalizedTheme];
+function createBackgroundLayer() {
+  const existing = document.querySelector('.theme-immersive-bg');
+  if (existing) return existing;
 
-  document.body.classList.remove(
-    'theme-birthday',
-    'theme-wedding',
-    'theme-corporate',
-    'theme-surprise',
-    'theme-default'
-  );
-  document.body.classList.add(`theme-${normalizedTheme}`);
-  document.body.dataset.giftTheme = normalizedTheme;
-  document.body.style.setProperty('--gift-theme-primary', themeToken.primary);
-  document.body.style.setProperty('--gift-theme-secondary', themeToken.secondary);
+  const background = document.createElement('div');
+  background.className = 'theme-immersive-bg';
+  background.innerHTML = `
+    <div class="theme-immersive-bg__gradient"></div>
+    <div class="theme-immersive-bg__glow"></div>
+  `;
+  document.body.prepend(background);
+  return background;
+}
 
-  if (spotlightEl) {
-    spotlightEl.dataset.mood = themeToken.mood;
-  }
-
+function createParticles(themeName, themeToken) {
   const existingLayer = document.querySelector('.view-particles');
   if (existingLayer) {
     existingLayer.remove();
   }
 
+  if (!themeToken.animationSpeed) {
+    return;
+  }
+
   const layer = document.createElement('div');
-  layer.className = `view-particles particles-${themeToken.particles}`;
+  layer.className = `view-particles particles-${themeToken.particleStyle} particles-${themeName}`;
   document.body.appendChild(layer);
 
-  const particleCount = themeToken.particles === 'minimal' ? 8 : 14;
+  const isMobile = window.matchMedia('(max-width: 479px)').matches;
+  const baseCount = {
+    confetti: 14,
+    sparkle: 10,
+    hearts: 10,
+    dots: 12,
+    'glow-pulse': 9,
+    'line-shimmer': 4,
+    minimal: 0
+  }[themeToken.particleStyle] || 8;
+
+  const particleCount = isMobile ? Math.max(4, Math.ceil(baseCount / 2)) : baseCount;
+
   for (let i = 0; i < particleCount; i += 1) {
-    const dot = document.createElement('span');
-    dot.className = 'view-particles__dot';
-    dot.style.left = `${Math.random() * 100}%`;
-    dot.style.animationDelay = `${Math.random() * 4}s`;
-    dot.style.animationDuration = `${6 + Math.random() * 4}s`;
-    layer.appendChild(dot);
+    const particle = document.createElement('span');
+    particle.className = 'view-particles__dot';
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.animationDelay = `${Math.random() * themeToken.animationSpeed}s`;
+    particle.style.animationDuration = `${themeToken.animationSpeed + (Math.random() * 4 - 2)}s`;
+    particle.style.setProperty('--particle-sway', `${(Math.random() * 24 - 12).toFixed(1)}px`);
+    layer.appendChild(particle);
   }
+}
+
+function runEntrySequence() {
+  document.body.classList.remove('experience-bg-visible', 'experience-particles-visible', 'experience-card-visible', 'experience-message-visible');
+
+  window.setTimeout(() => document.body.classList.add('experience-bg-visible'), 0);
+  window.setTimeout(() => document.body.classList.add('experience-particles-visible'), 200);
+  window.setTimeout(() => document.body.classList.add('experience-card-visible'), 400);
+  window.setTimeout(() => document.body.classList.add('experience-message-visible'), 600);
+}
+
+function applyThemeExperience(theme) {
+  const { name, config } = getTheme(theme);
+
+  document.body.classList.add('viewer-experience');
+  document.body.classList.remove(...(window.GIFT_THEME_CLASS_LIST || []));
+  document.body.classList.add(`theme-${name}`);
+  document.body.dataset.giftTheme = name;
+
+  document.body.style.setProperty('--gift-theme-primary', config.primary);
+  document.body.style.setProperty('--gift-theme-secondary', config.secondary);
+  document.body.style.setProperty('--gift-theme-gradient', config.gradient);
+  document.body.style.setProperty('--gift-theme-glow', config.glowColor);
+  document.body.style.setProperty('--gift-animation-speed', `${config.animationSpeed}s`);
+
+  createBackgroundLayer();
+  createParticles(name, config);
+
+  if (spotlightEl) {
+    spotlightEl.dataset.theme = name;
+  }
+
+  runEntrySequence();
 }
 
 function resolveMediaUrl(videoUrl) {
