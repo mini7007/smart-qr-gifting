@@ -2,7 +2,9 @@ const Gift = require('../models/Gift');
 const { generateQrDataUrl } = require('../utils/qrGenerator');
 
 function buildPublicBaseUrl(req) {
-  return process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+  return process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : `${req.protocol}://${req.get('host')}`;
 }
 
 async function createGift(req, res) {
@@ -24,13 +26,13 @@ async function createGift(req, res) {
 
     await gift.save();
 
-    const viewUrl = `${buildPublicBaseUrl(req)}/view.html?id=${gift._id}`;
-    const qrCodeUrl = await generateQrDataUrl(viewUrl);
+    const viewUrl = `${buildPublicBaseUrl(req)}/gift/${gift._id}`;
+    const qr = await generateQrDataUrl(viewUrl);
 
     return res.status(200).json({
       success: true,
-      qrCodeUrl,
-      giftId: gift._id.toString()
+      qr,
+      viewUrl
     });
   } catch (error) {
     const message = error && error.message ? error.message : 'Unexpected server error';
