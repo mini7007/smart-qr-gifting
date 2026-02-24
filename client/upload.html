@@ -48,7 +48,7 @@
           <label for="video" data-i18n="upload.videoLabel"></label>
           <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
 
-          <section id="audioRecorderPanel" class="audio-recorder hidden" aria-live="polite">
+          <section id="audioRecorderPanel" class="audio-recorder hidden" aria-live="polite" data-audio-recorder="true">
             <div class="audio-recorder-head">
               <p class="audio-title">🎤 Audio Gift Recorder</p>
               <span id="recordingTimer" class="recording-timer" aria-label="Recording timer">00:00</span>
@@ -66,6 +66,23 @@
             <p id="audioError" class="audio-error hidden" role="alert"></p>
 
             <audio id="audioPreview" class="audio-preview hidden" controls preload="metadata"></audio>
+
+            <section class="tts-generator" aria-live="polite">
+              <div class="tts-head">
+                <p class="tts-title">✨ Auto voice generator</p>
+                <span id="ttsLoadingState" class="tts-state hidden">Generating...</span>
+              </div>
+              <div class="tts-controls">
+                <label for="ttsVoiceSelect" class="sr-only">Select voice</label>
+                <select id="ttsVoiceSelect" class="tts-voice-select" aria-label="Select auto voice"></select>
+                <button id="generateVoiceBtn" type="button" class="audio-btn tts-generate-btn" aria-label="Generate voice from typed message">
+                  <span class="tts-pulse" aria-hidden="true"></span>
+                  Generate from text
+                </button>
+              </div>
+              <p id="ttsError" class="audio-error hidden" role="alert"></p>
+              <audio id="ttsPreview" class="audio-preview tts-preview hidden" controls preload="metadata" aria-label="Generated voice preview"></audio>
+            </section>
           </section>
 
           <div id="uploadProgressWrap" class="progress-wrap hidden" aria-live="polite">

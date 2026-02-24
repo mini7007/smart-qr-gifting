@@ -20,6 +20,12 @@ const reRecordBtn = document.getElementById('reRecordBtn');
 const audioPreview = document.getElementById('audioPreview');
 const recordingTimer = document.getElementById('recordingTimer');
 const audioError = document.getElementById('audioError');
+const messageEl = document.getElementById('message');
+const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
+const generateVoiceBtn = document.getElementById('generateVoiceBtn');
+const ttsPreview = document.getElementById('ttsPreview');
+const ttsError = document.getElementById('ttsError');
+const ttsLoadingState = document.getElementById('ttsLoadingState');
 
 let latestGiftUrl = '';
 let latestQrDataUrl = '';
@@ -29,6 +35,9 @@ let recordingTimerId = null;
 let recordingSeconds = 0;
 let audioBlob = null;
 let audioStream = null;
+let ttsGenerated = false;
+let ttsVoices = [];
+let ttsIsGenerating = false;
 
 function t(key) {
   return window.smartQRI18n ? window.smartQRI18n.t(key) : key;
@@ -64,6 +73,53 @@ function setAudioError(message = '') {
   const hasError = Boolean(message);
   audioError.textContent = message;
   audioError.classList.toggle('hidden', !hasError);
+}
+
+function setTTSError(message = '') {
+  const hasError = Boolean(message);
+  ttsError.textContent = message;
+  ttsError.classList.toggle('hidden', !hasError);
+}
+
+function clearTTSAudioPreview() {
+  if (!ttsPreview) return;
+  if (ttsPreview.dataset.objectUrl) {
+    URL.revokeObjectURL(ttsPreview.dataset.objectUrl);
+    delete ttsPreview.dataset.objectUrl;
+  }
+  ttsPreview.pause();
+  ttsPreview.removeAttribute('src');
+  ttsPreview.load();
+  ttsPreview.classList.remove('tts-visible');
+  ttsPreview.classList.add('hidden');
+}
+
+function showTTSAudioPreview(blob) {
+  clearTTSAudioPreview();
+  const objectUrl = URL.createObjectURL(blob);
+  ttsPreview.src = objectUrl;
+  ttsPreview.dataset.objectUrl = objectUrl;
+  ttsPreview.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    ttsPreview.classList.add('tts-visible');
+  });
+}
+
+function setTTSLoadingState(isLoading) {
+  ttsIsGenerating = isLoading;
+  generateVoiceBtn.disabled = isLoading;
+  generateVoiceBtn.classList.toggle('is-generating', isLoading);
+  generateVoiceBtn.setAttribute('aria-busy', String(isLoading));
+  ttsLoadingState.classList.toggle('hidden', !isLoading);
+}
+
+function setGeneratedAudioBlob(blob, source = 'recording') {
+  audioBlob = blob;
+  ttsGenerated = source === 'tts';
+  if (source === 'recording') {
+    clearTTSAudioPreview();
+    setTTSError('');
+  }
 }
 
 function setRecorderButtons({ isRecording = false, hasRecording = false } = {}) {
@@ -150,7 +206,8 @@ async function startRecording() {
         return;
       }
 
-      audioBlob = new Blob(recordingChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      const recordedBlob = new Blob(recordingChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      setGeneratedAudioBlob(recordedBlob, 'recording');
       showAudioPreview(audioBlob);
       setRecorderButtons({ isRecording: false, hasRecording: true });
     });
@@ -186,7 +243,7 @@ function stopRecording() {
 }
 
 function resetAudioRecording() {
-  audioBlob = null;
+  setGeneratedAudioBlob(null);
   recordingChunks = [];
   stopRecordingTimer();
   resetRecordingTimer();
@@ -196,9 +253,17 @@ function resetAudioRecording() {
 }
 
 function initAudioRecorder() {
-  if (!recordBtn || !stopBtn || !reRecordBtn || !audioPreview) return;
+  if (!recordBtn || !stopBtn || !reRecordBtn || !audioPreview || !generateVoiceBtn || !ttsVoiceSelect || !ttsPreview || !ttsError || !ttsLoadingState) return;
 
   resetAudioRecording();
+  setTTSError('');
+  clearTTSAudioPreview();
+  setTTSLoadingState(false);
+  populateVoiceOptions();
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.addEventListener('voiceschanged', populateVoiceOptions);
+  }
 
   recordBtn.addEventListener('click', () => {
     if (recordBtn.disabled) return;
@@ -212,6 +277,145 @@ function initAudioRecorder() {
   reRecordBtn.addEventListener('click', () => {
     resetAudioRecording();
   });
+
+  generateVoiceBtn.addEventListener('click', () => {
+    generateVoiceFromText();
+  });
+
+  generateVoiceBtn.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      generateVoiceFromText();
+    }
+  });
+}
+
+function populateVoiceOptions() {
+  if (!ttsVoiceSelect) return;
+
+  ttsVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  ttsVoiceSelect.innerHTML = '';
+
+  if (!ttsVoices.length) {
+    const fallback = document.createElement('option');
+    fallback.value = '';
+    fallback.textContent = 'Default voice';
+    ttsVoiceSelect.appendChild(fallback);
+    ttsVoiceSelect.disabled = true;
+    return;
+  }
+
+  ttsVoiceSelect.disabled = false;
+  ttsVoices.forEach((voice, index) => {
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = `${voice.name} (${voice.lang})`;
+    ttsVoiceSelect.appendChild(option);
+  });
+}
+
+async function generateVoiceFromText() {
+  if (ttsIsGenerating) return;
+  setTTSError('');
+
+  if (!messageEl || !messageEl.value.trim()) {
+    setTTSError('Please enter a message before generating auto voice.');
+    return;
+  }
+
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    setTTSError('Auto voice not supported on this browser');
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    setTTSError('Audio capture is not supported in this browser.');
+    return;
+  }
+
+  let stream;
+  let recorder;
+  let audioContext;
+  let destination;
+
+  try {
+    setTTSLoadingState(true);
+    clearTTSAudioPreview();
+
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    destination = audioContext.createMediaStreamDestination();
+
+    const sourceNode = audioContext.createMediaStreamSource(stream);
+    sourceNode.connect(destination);
+
+    const options = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? { mimeType: 'audio/webm;codecs=opus' }
+      : {};
+
+    const chunks = [];
+    recorder = new MediaRecorder(destination.stream, options);
+
+    const utterance = new SpeechSynthesisUtterance(messageEl.value.trim());
+    const selectedVoiceIndex = Number(ttsVoiceSelect.value);
+    if (!Number.isNaN(selectedVoiceIndex) && ttsVoices[selectedVoiceIndex]) {
+      utterance.voice = ttsVoices[selectedVoiceIndex];
+      utterance.lang = ttsVoices[selectedVoiceIndex].lang;
+    }
+
+    const ttsBlob = await new Promise((resolve, reject) => {
+      const cleanup = () => {
+        recorder.removeEventListener('dataavailable', onData);
+      };
+
+      const onData = (event) => {
+        if (event.data && event.data.size > 0) chunks.push(event.data);
+      };
+
+      recorder.addEventListener('dataavailable', onData);
+      recorder.addEventListener('error', () => {
+        cleanup();
+        reject(new Error('Auto voice generation failed.'));
+      });
+
+      recorder.addEventListener('stop', () => {
+        cleanup();
+        if (!chunks.length) {
+          reject(new Error('No generated audio was captured.'));
+          return;
+        }
+        resolve(new Blob(chunks, { type: recorder.mimeType || 'audio/webm' }));
+      }, { once: true });
+
+      utterance.addEventListener('end', () => {
+        if (recorder.state === 'recording') {
+          recorder.stop();
+        }
+      }, { once: true });
+
+      utterance.addEventListener('error', () => {
+        if (recorder.state === 'recording') recorder.stop();
+        reject(new Error('Could not synthesize the message.'));
+      }, { once: true });
+
+      recorder.start();
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    });
+
+    setGeneratedAudioBlob(ttsBlob, 'tts');
+    clearAudioPreview();
+    setRecorderButtons({ isRecording: false, hasRecording: false });
+    showTTSAudioPreview(ttsBlob);
+    window.smartQRUI && window.smartQRUI.showToast('Auto voice generated successfully.');
+  } catch (error) {
+    setTTSError(error.message || 'Unable to generate auto voice right now.');
+  } finally {
+    if (recorder && recorder.state === 'recording') recorder.stop();
+    if (stream) stream.getTracks().forEach((track) => track.stop());
+    if (audioContext) audioContext.close();
+    setTTSLoadingState(false);
+  }
 }
 
 function createGift(formData) {
@@ -286,7 +490,7 @@ uploadForm.addEventListener('submit', async (event) => {
   }
 
   if (audioBlob) {
-    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('audio', audioBlob, ttsGenerated ? 'tts.webm' : 'recording.webm');
   }
 
   setLoadingState(true);
