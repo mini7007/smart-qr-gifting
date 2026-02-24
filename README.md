@@ -2,6 +2,14 @@
 
 Smart QR Gifting lets users create heartfelt digital gifts and share them with QR codes and private links.
 
+# Preview Home page 
+<img width="1913" height="883" alt="image" src="https://github.com/user-attachments/assets/dd88faab-25e4-412b-aad3-61de96be5dd6" />
+
+# Creation Preview 
+<img width="1898" height="970" alt="image" src="https://github.com/user-attachments/assets/84e8923b-ebbb-4dfe-833e-06b2e50bb646" />
+
+
+
 ## ✨ Core Features
 
 - QR-based gift delivery
