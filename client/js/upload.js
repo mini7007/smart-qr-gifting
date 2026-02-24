@@ -44,12 +44,16 @@ uploadForm.addEventListener('submit', async (event) => {
       throw new Error(data.error || 'Could not create gift right now.');
     }
 
-    if (!data.giftId) {
+    // ✅ UPDATED VALIDATION (matches backend)
+    if (!data.viewUrl || !data.qr) {
       throw new Error('Invalid gift response from server');
     }
 
-    qrImageEl.src = data.qrCodeUrl;
-    openLinkEl.href = `${API_BASE}/gift/${data.giftId}`;
+    // ✅ SET QR IMAGE
+    qrImageEl.src = data.qr;
+
+    // ✅ USE BACKEND URL DIRECTLY
+    openLinkEl.href = data.viewUrl;
     openLinkEl.target = "_blank";
     openLinkEl.rel = "noopener noreferrer";
 
