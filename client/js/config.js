@@ -36,3 +36,6 @@ async function fetchJson(path, options = {}) {
     window.clearTimeout(timeoutId);
   }
 }
+
+window.API_BASE = API_BASE;
+window.fetchJson = fetchJson;

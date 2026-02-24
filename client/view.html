@@ -8,15 +8,18 @@
 </head>
 <body>
   <main class="page viewer-page">
-    <section class="card viewer-card">
-      <h1>Your surprise 🎁</h1>
+    <section class="card viewer-card gift-reveal gift-spotlight" id="giftSpotlight">
+      <h1 class="gift-success-title">Your surprise 🎁</h1>
       <p id="viewerStatus" class="status" aria-live="polite">Loading your gift...</p>
 
-      <video id="videoPlayer" class="gift-video hidden" controls playsinline preload="metadata"></video>
-      <p id="giftMessage" class="gift-message"></p>
+      <div class="media-spotlight-card">
+        <video id="videoPlayer" class="gift-video hidden" controls playsinline preload="metadata"></video>
+        <p id="giftMessage" class="gift-message"></p>
+      </div>
+      <!-- FUTURE AR: media will be projected into real-world surface -->
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/view.js"></script>
+  <script type="module" src="js/view.js"></script>
 </body>
 </html>
