@@ -648,8 +648,9 @@ function initTabs() {
 }
 
 function normalizeTheme(theme) {
-  if (theme === 'romantic') return 'love';
-  if (theme === 'corporate') return 'festival';
+  if (window.resolveGiftTheme) {
+    return window.resolveGiftTheme(theme);
+  }
   return theme || 'default';
 }
 
@@ -771,7 +772,7 @@ uploadForm.addEventListener('submit', async (event) => {
     openLinkEl.rel = 'noopener noreferrer';
 
     resultEl.classList.remove('hidden');
-    document.body.dataset.giftTheme = giftState.theme || 'default';
+    document.body.dataset.giftTheme = normalizeTheme(giftState.theme);
     const reveal = document.getElementById('giftReveal');
     if (reveal) {
       reveal.classList.remove('reveal-active');
