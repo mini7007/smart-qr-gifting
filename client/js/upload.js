@@ -445,6 +445,45 @@ async function generateVoiceFromText() {
   showComingSoonTTSNotice();
 }
 
+async function compressImageIfNeeded(file) {
+  if (!file || !file.type.startsWith('image/')) return file;
+
+  if (file.size < 800 * 1024) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+
+  const MAX_WIDTH = 1280;
+  const scale = Math.min(1, MAX_WIDTH / bitmap.width);
+
+  canvas.width = bitmap.width * scale;
+  canvas.height = bitmap.height * scale;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob || file),
+      'image/jpeg',
+      0.82
+    );
+  });
+}
+
+function normalizeMessage(text) {
+  return text
+    .normalize('NFC')
+    .trim();
+}
+
+function softCelebrationPulse() {
+  document.body.classList.add('success-pulse');
+  setTimeout(() => {
+    document.body.classList.remove('success-pulse');
+  }, 900);
+}
+
 function createGift(formData) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -560,27 +599,52 @@ if (videoInput) {
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  const message = document.getElementById('message').value.trim();
+  const message = document.getElementById('message').value;
   const file = giftState.uploadedFile || document.getElementById('video').files[0];
 
-  if (!message) {
+  if (!normalizeMessage(message)) {
     setStatus(t('upload.statusMissingMessage'), true);
     return;
   }
 
   const formData = new FormData();
-  formData.append('message', message);
+  const normalizedMessage = normalizeMessage(message);
+  formData.append('message', normalizedMessage);
   const hasRecordedAudio = Boolean(audioBlob);
 
   if (file && !hasRecordedAudio) {
     if (activeMediaTab === 'video' || activeMediaTab === 'text') {
-      formData.append('video', file);
+      let processedFile = file;
+
+      if (file.type.startsWith('image/')) {
+        processedFile = await compressImageIfNeeded(file);
+      }
+
+      if (processedFile) {
+        formData.append('video', processedFile, file.name);
+      }
     } else if (activeMediaTab === 'audio') {
       formData.append('audio', file);
     } else if (activeMediaTab === 'image') {
-      formData.append('image', file);
+      let processedFile = file;
+
+      if (file.type.startsWith('image/')) {
+        processedFile = await compressImageIfNeeded(file);
+      }
+
+      if (processedFile) {
+        formData.append('image', processedFile, file.name);
+      }
     } else if (activeMediaTab === 'gif') {
-      formData.append('gif', file);
+      let processedFile = file;
+
+      if (file.type.startsWith('image/')) {
+        processedFile = await compressImageIfNeeded(file);
+      }
+
+      if (processedFile) {
+        formData.append('gif', processedFile, file.name);
+      }
     }
   }
 
@@ -613,9 +677,20 @@ uploadForm.addEventListener('submit', async (event) => {
     openLinkEl.rel = 'noopener noreferrer';
 
     resultEl.classList.remove('hidden');
+    document.body.dataset.giftTheme = giftState.theme || 'default';
+    const reveal = document.getElementById('giftReveal');
+    if (reveal) {
+      reveal.classList.remove('reveal-active');
+    }
     requestAnimationFrame(() => {
       resultEl.classList.add('success');
       launchSuccessBurst();
+      softCelebrationPulse();
+      if (reveal) {
+        requestAnimationFrame(() => {
+          reveal.classList.add('reveal-active');
+        });
+      }
     });
 
     setStatus(t('upload.statusSuccess'));

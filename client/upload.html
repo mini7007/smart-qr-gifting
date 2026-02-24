@@ -43,7 +43,7 @@
 
         <form id="uploadForm" class="gift-form" novalidate>
           <label for="message" data-i18n="upload.messageLabel"></label>
-          <textarea id="message" maxlength="300" data-i18n-placeholder="upload.messagePlaceholder" required></textarea>
+          <textarea id="message" maxlength="2000" data-i18n-placeholder="upload.messagePlaceholder" required></textarea>
 
           <label for="video" data-i18n="upload.videoLabel"></label>
           <div id="dropZone" class="drop-zone">
@@ -114,13 +114,16 @@
         <p id="status" class="status" aria-live="polite"></p>
 
         <section id="result" class="result hidden" aria-live="polite">
-          <h2 data-i18n="upload.resultTitle"></h2>
-          <img id="qrImage" alt="Gift QR code" />
-          <a id="openLink" class="button-link" target="_blank" rel="noopener noreferrer" data-i18n="upload.openGift"></a>
-          <div class="action-row">
-            <button id="copyLinkBtn" class="button-link button-secondary" type="button" data-i18n="upload.copyLink"></button>
-            <button id="shareBtn" class="button-link button-secondary" type="button" data-i18n="upload.share"></button>
-            <button id="downloadQrBtn" class="button-link button-secondary" type="button" data-i18n="upload.downloadQr"></button>
+          <div id="giftReveal" class="gift-reveal">
+            <h2 data-i18n="upload.resultTitle"></h2>
+            <h3 class="gift-success-title">✨ Your Smart Gift is Ready!</h3>
+            <img id="qrImage" alt="Gift QR code" />
+            <a id="openLink" class="button-link" target="_blank" rel="noopener noreferrer" data-i18n="upload.openGift"></a>
+            <div class="action-row">
+              <button id="copyLinkBtn" class="button-link button-secondary" type="button" data-i18n="upload.copyLink"></button>
+              <button id="shareBtn" class="button-link button-secondary" type="button" data-i18n="upload.share"></button>
+              <button id="downloadQrBtn" class="button-link button-secondary" type="button" data-i18n="upload.downloadQr"></button>
+            </div>
           </div>
           <div id="successConfetti" class="success-burst" aria-hidden="true"></div>
         </section>
