@@ -30,6 +30,11 @@ const GiftSchema = new mongoose.Schema(
     gifUrl: {
       type: String,
       default: ''
+    },
+    theme: {
+      type: String,
+      default: 'default',
+      trim: true
     }
   },
   {

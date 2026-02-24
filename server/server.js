@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const giftRoutes = require('./routes/giftRoutes');
+const aiRoutes = require('./routes/ai');
 const Gift = require('./models/Gift');
 const { buildGiftLookupQuery } = require('./controllers/giftController');
 
@@ -40,7 +41,7 @@ function escapeHtml(input) {
     .replace(/'/g, '&#39;');
 }
 
-function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
+function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl, theme = 'default' }) {
   const safeMessage = escapeHtml(message);
   const hasVideo = typeof videoUrl === 'string' && videoUrl.trim().length > 0;
   const hasAudio = typeof audioUrl === 'string' && audioUrl.trim().length > 0;
@@ -51,6 +52,8 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
   const safeAudioUrl = hasAudio ? encodeURI(audioUrl) : '';
   const safeImageUrl = hasImage ? encodeURI(imageUrl) : '';
   const safeGifUrl = hasGif ? encodeURI(gifUrl) : '';
+  const normalizedTheme = typeof theme === 'string' ? theme.toLowerCase() : 'default';
+  const birthdayMode = normalizedTheme === 'birthday';
 
   return `<!doctype html>
 <html lang="en">
@@ -59,14 +62,8 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Your Gift</title>
     <style>
-      :root {
-        color-scheme: light;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
@@ -78,7 +75,8 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
         padding: 20px;
         color: #1f2937;
       }
-
+      body[data-theme="love"] { background: linear-gradient(135deg, #fff1f2, #fed7aa); }
+      body[data-theme="festival"] { background: radial-gradient(circle at top, #fef08a, #c4b5fd 52%, #67e8f9); }
       .card {
         width: 100%;
         max-width: 560px;
@@ -87,13 +85,12 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
         padding: 24px;
         box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
       }
-
-      h1 {
-        margin: 0 0 16px;
-        font-size: clamp(1.4rem, 2.4vw, 2rem);
-        text-align: center;
+      .birthday-card { animation: revealGift 520ms ease; }
+      @keyframes revealGift {
+        from { opacity: 0; transform: translateY(16px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
       }
-
+      h1 { margin: 0 0 16px; font-size: clamp(1.4rem, 2.4vw, 2rem); text-align: center; }
       .message {
         margin: 0;
         padding: 16px;
@@ -104,38 +101,17 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
         white-space: pre-wrap;
         text-align: center;
       }
-
-      .video-wrap {
-        margin-top: 20px;
-      }
-
-      video {
-        width: 100%;
-        max-height: 420px;
-        border-radius: 14px;
-        background: #000;
-      }
-
-      img, audio {
-        width: 100%;
-        margin-top: 20px;
-        border-radius: 14px;
-      }
-
+      .video-wrap { margin-top: 20px; }
+      video { width: 100%; max-height: 420px; border-radius: 14px; background: #000; }
+      img, audio { width: 100%; margin-top: 20px; border-radius: 14px; }
       @media (max-width: 480px) {
-        .card {
-          padding: 18px;
-          border-radius: 16px;
-        }
-
-        .message {
-          font-size: 0.96rem;
-        }
+        .card { padding: 18px; border-radius: 16px; }
+        .message { font-size: 0.96rem; }
       }
     </style>
   </head>
-  <body>
-    <main class="card">
+  <body data-theme="${normalizedTheme}">
+    <main class="card ${birthdayMode ? 'birthday-card' : ''}">
       <h1>Your Gift</h1>
       <p class="message">${safeMessage}</p>
       ${hasImage ? `<img alt="Gift image" loading="lazy" src="${safeImageUrl}" />` : ''}
@@ -143,6 +119,30 @@ function renderGiftPage({ message, videoUrl, audioUrl, imageUrl, gifUrl }) {
       ${hasVideo ? `<div class="video-wrap"><video controls playsinline preload="metadata" src="${safeVideoUrl}"></video></div>` : ''}
       ${hasAudio ? `<audio controls preload="metadata" src="${safeAudioUrl}"></audio>` : ''}
     </main>
+    ${birthdayMode ? `<script>
+      (function burst() {
+        const colors = ['#f97316', '#facc15', '#34d399', '#60a5fa', '#f472b6'];
+        for (let i = 0; i < 30; i += 1) {
+          const piece = document.createElement('span');
+          piece.style.position = 'fixed';
+          piece.style.top = '-10px';
+          piece.style.left = Math.random() * 100 + 'vw';
+          piece.style.width = '8px';
+          piece.style.height = '12px';
+          piece.style.background = colors[i % colors.length];
+          piece.style.pointerEvents = 'none';
+          piece.style.borderRadius = '3px';
+          piece.style.transition = 'transform 1200ms ease-out, opacity 1200ms ease-out';
+          piece.style.opacity = '1';
+          document.body.appendChild(piece);
+          requestAnimationFrame(() => {
+            piece.style.transform = 'translateY(105vh) rotate(' + (Math.random() * 500) + 'deg)';
+            piece.style.opacity = '0';
+          });
+          setTimeout(() => piece.remove(), 1400);
+        }
+      })();
+    </script>` : ''}
   </body>
 </html>`;
 }
@@ -252,7 +252,8 @@ app.get('/gift/:publicId', async (req, res) => {
         videoUrl: gift.videoUrl,
         audioUrl: gift.audioUrl,
         imageUrl: gift.imageUrl,
-        gifUrl: gift.gifUrl
+        gifUrl: gift.gifUrl,
+        theme: gift.theme
       })
     );
   } catch (error) {
@@ -272,6 +273,7 @@ app.use('/api/gifts', (req, res, next) => {
 });
 
 app.use('/api/gifts', giftRoutes);
+app.use('/api/ai', aiRoutes);
 
 /* -------------------- Error handler -------------------- */
 app.use((err, _req, res, _next) => {

@@ -97,6 +97,15 @@
     window.smartQRI18n.renderText();
   }
 
+
+  if (!window.smartQRAIState) {
+    window.smartQRAIState = {
+      triesUsed: 0,
+      theme: null,
+      lastMessages: []
+    };
+  }
+
   initTheme();
   initInstallPrompt();
   initObservers();

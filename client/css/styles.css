@@ -425,3 +425,97 @@ body[data-gift-theme="corporate"] {
   50% { filter: brightness(1.15); }
   100% { filter: brightness(1); }
 }
+
+.theme-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
+}
+.theme-preview__label { margin: 0 0 0.4rem; font-size: 0.85rem; color: var(--muted); }
+.theme-preview__card {
+  border-radius: 12px;
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+.theme-preview[data-theme="birthday"] .theme-preview__card {
+  background: radial-gradient(circle at 20% 20%, #f9a8d4, transparent 30%), linear-gradient(135deg, #60a5fa, #a78bfa);
+}
+.theme-preview[data-theme="love"] .theme-preview__card {
+  background: linear-gradient(135deg, #fb7185, #fdba74);
+}
+.theme-preview[data-theme="festival"] .theme-preview__card {
+  background: radial-gradient(circle at 80% 20%, #fde047, transparent 30%), linear-gradient(135deg, #22d3ee, #a78bfa);
+}
+
+body[data-gift-theme="love"],
+body[data-gift-theme="romantic"] {
+  background: radial-gradient(circle at 50% 20%, #ff4d6d 0%, transparent 45%), #0b1020;
+}
+body[data-gift-theme="festival"],
+body[data-gift-theme="corporate"] {
+  background: linear-gradient(135deg, #0f172a, #111827);
+}
+
+.view-particles {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+}
+.view-particles__dot {
+  position: absolute;
+  bottom: -10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  animation: floatDot 5s linear infinite;
+}
+@keyframes floatDot {
+  from { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  to { transform: translateY(-100vh); opacity: 0; }
+}
+
+.mini-panda {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 60;
+}
+.mini-panda__fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+}
+.mini-panda__panel {
+  width: min(92vw, 340px);
+  margin-bottom: 0.7rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+  padding: 0.7rem;
+  animation: revealUp 180ms ease;
+}
+.mini-panda__panel header { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); }
+.mini-panda__messages { max-height: 220px; overflow: auto; display: grid; gap: 0.4rem; padding: 0.55rem 0; }
+.mini-panda__msg { font-size: 0.9rem; padding: 0.5rem 0.6rem; border-radius: 10px; }
+.mini-panda__msg--user { background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
+.mini-panda__msg--assistant { background: color-mix(in srgb, var(--surface) 94%, #fff); border: 1px solid var(--border); }
+.mini-panda__msg--error { background: color-mix(in srgb, var(--error) 12%, var(--surface)); }
+.mini-panda__typing { font-size: 0.78rem; color: var(--muted); }
+.mini-panda__composer { display: flex; gap: 0.4rem; }
+.mini-panda__composer input { min-height: 40px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); padding: 0.5rem; }
+.mini-panda__composer button { min-width: 72px; }
+.mini-panda__suggestions { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.mini-panda__suggestions button { padding: 0.3rem 0.45rem; border-radius: 999px; font-size: 0.74rem; border: 1px solid var(--border); background: transparent; color: var(--text); }
+.mini-panda__notice { margin: 0.4rem 0 0; color: var(--error); font-size: 0.8rem; }
