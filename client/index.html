@@ -3,16 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#7C3AED" />
   <title>Smart QR Gifting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <main class="page">
-    <section class="card hero-card">
-      <h1>Smart QR Gifting</h1>
-      <p class="subtle">Create a personalized gift page, attach a video, and share instantly with a scan.</p>
-      <a href="upload.html" class="button-link">Create a gift</a>
-    </section>
+    <div class="container">
+      <div class="topbar">
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">🌙 Dark</button>
+      </div>
+
+      <section class="card hero-card">
+        <h1>Smart QR Gifting</h1>
+        <p class="subtle">Create a personalized gift page, attach a video, and share instantly with a scan.</p>
+        <a href="upload.html" class="button-link cta-animated">Create a gift</a>
+      </section>
+    </div>
   </main>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      const storageKey = 'smartqr-theme';
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function applyTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        toggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+      }
+
+      const saved = localStorage.getItem(storageKey);
+      applyTheme(saved || (media.matches ? 'dark' : 'light'));
+
+      toggle.addEventListener('click', function () {
+        const current = root.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(storageKey, next);
+        applyTheme(next);
+      });
+
+      media.addEventListener('change', function (event) {
+        if (!localStorage.getItem(storageKey)) {
+          applyTheme(event.matches ? 'dark' : 'light');
+        }
+      });
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/service-worker.js').catch(function (error) {
+            console.warn('Service worker registration failed:', error);
+          });
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

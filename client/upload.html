@@ -3,35 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#7C3AED" />
   <title>Create Gift | Smart QR Gifting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <main class="page">
-    <section class="card">
-      <a class="back-link" href="index.html">← Back</a>
-      <h1>Create your gift</h1>
-      <p class="subtle">Add a heartfelt message and an optional video. We'll generate a QR code ready to print or share.</p>
+    <div class="container">
+      <div class="topbar">
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">🌙 Dark</button>
+      </div>
 
-      <form id="uploadForm" class="gift-form" novalidate>
-        <label for="message">Gift message</label>
-        <textarea id="message" maxlength="300" placeholder="Write something memorable..." required></textarea>
+      <section class="card">
+        <a class="back-link" href="index.html">← Back</a>
+        <h1>Create your gift</h1>
+        <p class="subtle">Add a heartfelt message and an optional video. We'll generate a QR code ready to print or share.</p>
 
-        <label for="video">Optional video (MP4, WebM, OGG, MOV · max 30MB)</label>
-        <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
+        <form id="uploadForm" class="gift-form" novalidate>
+          <label for="message">Gift message</label>
+          <textarea id="message" maxlength="300" placeholder="Write something memorable..." required></textarea>
 
-        <button id="submitBtn" type="submit">Generate QR code</button>
-      </form>
+          <label for="video">Optional video (MP4, WebM, OGG, MOV · max 30MB)</label>
+          <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
 
-      <p id="status" class="status" aria-live="polite"></p>
+          <button id="submitBtn" type="submit">Generate QR code</button>
+        </form>
 
-      <section id="result" class="result hidden" aria-live="polite">
-        <h2>Your gift is ready 🎉</h2>
-        <img id="qrImage" alt="Gift QR code" />
-        <a id="openLink" class="button-link" target="_blank" rel="noopener noreferrer">Open gift page</a>
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <section id="result" class="result hidden" aria-live="polite">
+          <h2>Your gift is ready 🎉</h2>
+          <img id="qrImage" alt="Gift QR code" />
+          <a id="openLink" class="button-link" target="_blank" rel="noopener noreferrer">Open gift page</a>
+        </section>
       </section>
-    </section>
+    </div>
   </main>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      const storageKey = 'smartqr-theme';
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function applyTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        toggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+      }
+
+      const saved = localStorage.getItem(storageKey);
+      applyTheme(saved || (media.matches ? 'dark' : 'light'));
+
+      toggle.addEventListener('click', function () {
+        const current = root.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(storageKey, next);
+        applyTheme(next);
+      });
+
+      media.addEventListener('change', function (event) {
+        if (!localStorage.getItem(storageKey)) {
+          applyTheme(event.matches ? 'dark' : 'light');
+        }
+      });
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/service-worker.js').catch(function (error) {
+            console.warn('Service worker registration failed:', error);
+          });
+        });
+      }
+    })();
+  </script>
+
   <script src="js/config.js"></script>
   <script src="js/upload.js"></script>
 </body>
