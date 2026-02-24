@@ -44,7 +44,10 @@ uploadForm.addEventListener('submit', async (event) => {
       throw new Error(data.error || 'Could not create gift right now.');
     }
 
-    // ✅ FIXED mapping
+    if (!data.giftId) {
+      throw new Error('Invalid gift response from server');
+    }
+
     qrImageEl.src = data.qrCodeUrl;
     openLinkEl.href = `${API_BASE}/gift/${data.giftId}`;
     openLinkEl.target = "_blank";
