@@ -84,23 +84,78 @@ body {
 
 .hero { display: grid; gap: var(--space-4); padding: 2rem 0 1rem; }
 
-.hero { animation: heroFade 0.9s cubic-bezier(.2,.8,.2,1); position: relative; }
-.hero::after {
-  content: '🎁';
+.hero { position: relative; isolation: isolate; }
+.hero-copy,
+.hero-card {
+  opacity: 0;
+  transform: translateY(20px) scale(0.96);
+  animation: heroPremiumIn 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+.hero-card { animation-delay: 0.18s; }
+.hero-gift-float {
   position: absolute;
-  right: 0.4rem;
-  top: -0.2rem;
-  font-size: 1.1rem;
-  opacity: 0.7;
+  right: 0.6rem;
+  top: -0.35rem;
+  font-size: 1.2rem;
+  opacity: 0.72;
+  animation: giftFloat 6.8s ease-in-out infinite;
 }
 .section h2::after {
   content: ' ✨';
   opacity: 0.45;
 }
+@keyframes heroPremiumIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes giftFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -8px, 0); }
+}
 
-@keyframes heroFade {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.hero-celebration-layer {
+  position: absolute;
+  inset: -20px -8px auto;
+  height: 250px;
+  pointer-events: none;
+  z-index: -1;
+}
+.hero-balloon,
+.hero-confetti {
+  position: absolute;
+  will-change: transform, opacity;
+}
+.hero-balloon {
+  width: clamp(52px, 8vw, 78px);
+  height: clamp(72px, 10vw, 104px);
+  border-radius: 50% 50% 46% 46%;
+  filter: blur(2px);
+  opacity: 0.2;
+  background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.48), rgba(255,123,123,.7));
+  animation: balloonDrift 16s ease-in-out infinite;
+}
+.balloon-a { left: 5%; top: 30px; }
+.balloon-b { left: 28%; top: 0; animation-duration: 20s; opacity: 0.16; }
+.balloon-c { right: 4%; top: 44px; animation-duration: 18s; opacity: 0.14; }
+.hero-confetti {
+  width: 8px;
+  height: 14px;
+  border-radius: 6px;
+  opacity: 0.26;
+  background: linear-gradient(180deg, #ffd6a5, #ff7b7b);
+  animation: confettiDrift 10s linear infinite;
+}
+.confetti-a { left: 20%; top: 18px; }
+.confetti-b { left: 52%; top: 68px; animation-delay: 1.5s; }
+.confetti-c { right: 18%; top: 22px; animation-delay: 2.8s; }
+@keyframes balloonDrift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+@keyframes confettiDrift {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(0, 110px, 0) rotate(150deg); }
 }
 
 .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.7rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 0.7rem; }
@@ -546,3 +601,114 @@ body[data-gift-theme="corporate"] {
   to { transform: translateY(-100vh); opacity: 0; }
 }
 
+
+.viewer-page {
+  position: relative;
+}
+body.theme-default,
+body.theme-surprise,
+body.theme-corporate,
+body.theme-wedding,
+body.theme-birthday {
+  --gift-theme-primary: #8b5cf6;
+  --gift-theme-secondary: #c4b5fd;
+  background-size: 160% 160%;
+  animation: themeGradientShift 14s ease infinite;
+}
+body.theme-birthday { background-image: linear-gradient(135deg, #2a1230, #49243d, #8b3f40); }
+body.theme-wedding { background-image: linear-gradient(135deg, #24190b, #4f3a1d, #7b601d); }
+body.theme-corporate { background-image: linear-gradient(135deg, #0b1738, #11295b, #0f3f7c); }
+body.theme-surprise { background-image: linear-gradient(135deg, #180c39, #2d1768, #4b2cab); }
+body.theme-default { background-image: linear-gradient(135deg, #1f153f, #3e2972, #5640a8); }
+@keyframes themeGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.viewer-card {
+  max-width: min(760px, calc(100% - 1.2rem));
+  margin-top: 2.4rem;
+}
+.gift-spotlight {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--gift-theme-primary) 30%, white);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--gift-theme-primary) 32%, transparent);
+  animation: spotlightFloat 8s ease-in-out infinite;
+}
+.gift-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gift-theme-primary) 35%, transparent), transparent 60%);
+  opacity: 0.48;
+  pointer-events: none;
+}
+.gift-spotlight:hover { transform: translate3d(0, -3px, 0); }
+.media-spotlight-card {
+  position: relative;
+  z-index: 1;
+  border-radius: 16px;
+  padding: clamp(0.8rem, 2.5vw, 1.3rem);
+  background: color-mix(in srgb, #ffffff 12%, transparent);
+}
+.gift-message { font-size: clamp(1.05rem, 2.8vw, 1.3rem); line-height: 1.75; margin-top: 1rem; }
+.view-particles__dot {
+  background: color-mix(in srgb, var(--gift-theme-secondary) 75%, white);
+  opacity: 0.72;
+}
+body.theme-wedding .gift-spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 240, 180, 0.25) 45%, transparent 70%);
+  transform: translateX(-120%);
+  animation: shimmerSweep 7s linear infinite;
+}
+body.theme-corporate .gift-spotlight::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  top: 26%;
+  background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
+  animation: lineSweep 6.5s linear infinite;
+}
+body.theme-surprise .gift-spotlight { animation-delay: .35s; }
+body.theme-surprise .media-spotlight-card { animation: delayedReveal 1.15s cubic-bezier(0.22, 1, 0.36, 1); }
+body.theme-birthday .gift-spotlight { animation: spotlightFloat 8s ease-in-out infinite, warmGlowPulse 4.5s ease-in-out infinite; }
+@keyframes spotlightFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+@keyframes shimmerSweep { to { transform: translateX(120%); } }
+@keyframes lineSweep {
+  0% { transform: scaleX(0.4); opacity: 0.2; }
+  50% { transform: scaleX(1); opacity: 0.8; }
+  100% { transform: scaleX(0.4); opacity: 0.2; }
+}
+@keyframes delayedReveal {
+  0% { opacity: 0; transform: translate3d(0, 14px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes warmGlowPulse {
+  0%, 100% { box-shadow: 0 20px 60px color-mix(in srgb, var(--gift-theme-primary) 30%, transparent); }
+  50% { box-shadow: 0 24px 66px color-mix(in srgb, var(--gift-theme-primary) 44%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy, .hero-card, .hero-gift-float, .hero-balloon, .hero-confetti,
+  .gift-spotlight, .media-spotlight-card, .view-particles__dot, body.theme-default,
+  body.theme-surprise, body.theme-corporate, body.theme-wedding, body.theme-birthday {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .reveal { opacity: 1; }
+}
+@media (max-width: 767px) {
+  .hero-celebration-layer { height: 180px; }
+  .viewer-card { margin-top: 1rem; }
+  .gift-spotlight { padding: 1rem; }
+}

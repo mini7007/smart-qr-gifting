@@ -31,6 +31,15 @@ Theme-aware creation + viewing:
 - **Festival / Corporate**
 - **Default surprise**
 
+## 🎨 Immersive Theme Engine
+
+Phase B introduces a cinematic, theme-driven experience layer across homepage and gift reveal flows:
+
+- **Theme-driven UX:** centralized visual tokens in `THEME_CONFIG` keep birthday, wedding, corporate, and surprise experiences consistent.
+- **Scalable for AR:** spotlight composition is structured to support future Three.js/WebAR mounts with minimal refactor.
+- **Performance-first animations:** transform/opacity-only motion with reduced-motion support keeps rendering smooth on mobile.
+- **Emotional design approach:** each theme includes subtle micro-animations and mood-tuned gradients to deepen recipient impact.
+
 ## 🖼️ Smart Media Pipeline
 
 Upload page enhancements:
