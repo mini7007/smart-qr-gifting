@@ -384,17 +384,23 @@ function initTabs() {
 
       const activeTab = tab.dataset.tab;
 
-      // show/hide future hint
-      const isFutureTab = ['image', 'gif'].includes(activeTab);
-      futureHint.classList.toggle('hidden', !isFutureTab);
+      futureHint.classList.toggle(
+        'hidden',
+        !['image', 'gif'].includes(activeTab)
+      );
 
-      // audio panel visibility
-      audioRecorderPanel.classList.toggle('hidden', activeTab !== 'audio');
+      audioRecorderPanel.classList.toggle(
+        'hidden',
+        activeTab !== 'audio'
+      );
 
-      // smart file enable logic
+      // smart accept + enable logic
       if (activeTab === 'video' || activeTab === 'text') {
         videoInput.disabled = false;
         videoInput.accept = 'video/*';
+      } else if (activeTab === 'audio') {
+        videoInput.disabled = false;
+        videoInput.accept = 'audio/*';
       } else if (activeTab === 'image') {
         videoInput.disabled = false;
         videoInput.accept = 'image/*';
@@ -407,7 +413,9 @@ function initTabs() {
 
       const fileHint = document.getElementById('fileTypeHint');
       if (fileHint) {
-        if (activeMediaTab === 'image') {
+        if (activeMediaTab === 'audio') {
+          fileHint.textContent = 'Upload MP3, WAV, or WebM audio — or record live.';
+        } else if (activeMediaTab === 'image') {
           fileHint.textContent = 'Upload JPG, PNG or WEBP image';
         } else if (activeMediaTab === 'gif') {
           fileHint.textContent = 'Upload animated GIF';
@@ -434,10 +442,13 @@ uploadForm.addEventListener('submit', async (event) => {
 
   const formData = new FormData();
   formData.append('message', message);
+  const hasRecordedAudio = Boolean(audioBlob);
 
-  if (file) {
+  if (file && !hasRecordedAudio) {
     if (activeMediaTab === 'video' || activeMediaTab === 'text') {
       formData.append('video', file);
+    } else if (activeMediaTab === 'audio') {
+      formData.append('audio', file);
     } else if (activeMediaTab === 'image') {
       formData.append('image', file);
     } else if (activeMediaTab === 'gif') {
