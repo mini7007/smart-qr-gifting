@@ -1,142 +1,119 @@
 # Smart QR Gifting 🎁
 
-Smart QR Gifting lets users create heartfelt digital gifts and share them instantly with a QR code or secure link. Every gift includes a required message and optional media uploads (video, audio, image, or GIF), making it flexible for personal, event, and campaign use.
+Smart QR Gifting lets users create heartfelt digital gifts and share them with QR codes and private links.
 
-## ✨ Features
+## 🤖 Mini Panda AI Assistant
+
+Mini Panda is a floating multilingual assistant available in the frontend UI.
+
+- Glassmorphism mobile-first widget
+- Suggestion chips + typing indicator
+- Session limit notice (3 AI tries per session)
+- AI chat support for gift wording and theme-aware ideas
+
+## 🔐 Secure AI Proxy
+
+All AI calls run through backend Express routes (never from frontend keys):
+
+- `POST /api/ai/chat`
+- `POST /api/ai/generate-message`
+- `POST /api/ai/generate-image`
+
+Security + operational safeguards:
+
+- OpenAI key is only read from `process.env.OPENAI_API_KEY`
+- Per-session request cap: **3 requests**
+- 429 returned when the session limit is exceeded
+- Structured error handling and logging
+
+## 🌍 Multilingual Support
+
+- User input supports UTF-8 text in all languages/scripts
+- AI is prompted to respond in the user’s language
+- No forced English output
+
+## 🎨 Gift Themes
+
+Theme-aware creation + viewing:
+
+- **Birthday**: confetti-like visuals, reveal motion, floating particles
+- **Love**: warm gradients and softer palette
+- **Festival**: vibrant glow styling
+
+## 🖼️ Smart Media Pipeline
+
+Upload page enhancements:
+
+- Drag & drop + click upload support
+- Visual drag highlight states
+- Smart image compression via canvas before upload
+- GIF size warning flow
+- Video size validation (no heavy client processing)
+
+## ✨ Core Features
 
 - QR-based gift delivery
-- Text messages
-- Video uploads
-- Audio recordings/uploads
-- Image uploads
-- GIF uploads
-- Encrypted gift links 🔐
-- PWA ready
-- Multilingual ready
-- Voice features (preview)
-
-
-## Supported media uploads
-
-- Text message
-- Video upload
-- Voice recording
-- Image upload
-- GIF upload
-
-Some formats may depend on backend configuration.
-
-
-## 🔐 Security
-
-The backend is designed with production safety in mind:
-
-- **publicId tokenization:** each new gift gets a randomly generated public token (`crypto.randomBytes(24)`), so raw MongoDB `_id` values are not exposed in fresh links.
-- **Non-guessable links:** gift URLs now use `/gift/:publicId`, reducing predictability and scraping risk.
-- **Backward compatibility:** old links that still contain Mongo ObjectIds continue to resolve safely.
-- **Safe uploads:** Multer validates MIME type by field (`video`, `audio`, `image`, `gif`) and enforces file limits.
-- **Optional media:** all media fields are optional so users can send text-only gifts without errors.
+- Text + optional media uploads (video/audio/image/GIF)
+- Secure public gift tokens
+- PWA-ready frontend
 
 ## 🏗️ Tech Stack
 
-- Node.js
-- Express
+- Node.js + Express
 - MongoDB + Mongoose
 - Multer
-- QRCode
-- Vercel (frontend hosting)
-- Railway (backend hosting)
+- OpenAI Node SDK
+- Vercel (frontend) + Railway (backend)
 
-## 🚀 Local Setup
+## 🚀 Environment Setup
 
-### 1) Clone and install
-
-```bash
-git clone <your-repo-url>
-cd smart-qr-gifting
-npm install
-```
-
-### 2) Configure environment
-
-Create a `.env` file in the project root:
+Create `.env` in project root:
 
 ```bash
 MONGODB_URI=mongodb://localhost:27017/smart-qr-gifting
 PORT=5000
+OPENAI_API_KEY=your_openai_api_key_here
+# Optional for deployment URL generation:
+RAILWAY_PUBLIC_DOMAIN=your-app.up.railway.app
 ```
 
-> `RAILWAY_PUBLIC_DOMAIN` is optional and only used to force public URL generation in hosted environments.
-
-### 3) Run the app
+Install and run:
 
 ```bash
+npm install
 npm start
 ```
 
-Server defaults to `http://localhost:5000`.
-
-### 4) Verify health
+Health check:
 
 ```bash
 curl http://localhost:5000/api/health
 ```
 
-## 📡 API
+## 📡 API Snapshot
 
 ### `POST /api/gifts`
-Create a gift and generate a QR code.
+Create gift with message and optional media.
 
-**Request:** `multipart/form-data`
-
-- `message` (required)
-- `video` (optional)
-- `audio` (optional)
-- `image` (optional)
-- `gif` (optional)
-
-**Success response (unchanged contract):**
-
-```json
-{
-  "success": true,
-  "qr": "data:image/png;base64,...",
-  "viewUrl": "https://your-domain.com/gift/<publicId>"
-}
-```
+### `GET /api/gifts/:publicId`
+Fetch gift JSON payload.
 
 ### `GET /gift/:publicId`
-Render the gift view page by secure public ID.
+Render gift page experience.
 
-- Also supports old ObjectId URLs for legacy compatibility.
+### `POST /api/ai/chat`
+AI assistant chat response.
 
-## 🧪 Supported Media
+### `POST /api/ai/generate-message`
+Refines partial message input (same language).
 
-| Field  | Accepted MIME types                                      | Max size |
-|--------|-----------------------------------------------------------|----------|
-| video  | `video/mp4`, `video/webm`, `video/ogg`, `video/quicktime` | 50 MB    |
-| audio  | `audio/mpeg`, `audio/mp3`, `audio/mp4`, `audio/webm`, `audio/ogg`, `audio/wav` | 20 MB    |
-| image  | `image/png`, `image/jpeg`, `image/webp`                  | 10 MB    |
-| gif    | `image/gif`                                               | 15 MB    |
+### `POST /api/ai/generate-image`
+Generates themed image output (URL/base64 when available).
 
-All media fields are optional. Message text is still required.
+## 🚀 Future Roadmap
 
-## 🧭 Migration Notes
-
-If you already have live gifts in MongoDB:
-
-1. Deploy backend update.
-2. New gifts will auto-generate `publicId`.
-3. Old `/gift/<ObjectId>` links continue to work without data migration.
-4. (Optional) Backfill `publicId` for existing records if you want all URLs to be tokenized.
-
-## 🔮 Roadmap
-
-- Neural TTS
-- AR gifts
-- Expiring links
-- End-to-end encryption
-
----
-
-Built for delightful gifting experiences with production-safe defaults.
+- Neural TTS integration
+- AI voice personas
+- Theme packs + seasonal animations
+- Gift analytics + campaign templates
+- Optional expiring gift links

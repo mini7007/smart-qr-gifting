@@ -39,6 +39,8 @@ let ttsGenerated = false;
 let ttsVoices = [];
 let ttsIsGenerating = false;
 let activeMediaTab = 'text';
+const MAX_GIF_SIZE_BYTES = 8 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 30 * 1024 * 1024;
 
 const giftState = {
   activeTab: 'text',
@@ -579,11 +581,34 @@ function initTabs() {
   });
 }
 
+function normalizeTheme(theme) {
+  if (theme === 'romantic') return 'love';
+  if (theme === 'corporate') return 'festival';
+  return theme || 'default';
+}
+
+function updateThemePreview(theme) {
+  const preview = document.getElementById('themePreview');
+  if (!preview) return;
+  const normalized = normalizeTheme(theme);
+  preview.dataset.theme = normalized;
+}
+
 const themeSelect = document.getElementById('themeSelect');
 
 if (themeSelect) {
+  giftState.theme = themeSelect.value;
+  updateThemePreview(giftState.theme);
+  if (window.smartQRAIState) {
+    window.smartQRAIState.theme = normalizeTheme(giftState.theme);
+  }
+
   themeSelect.addEventListener('change', (e) => {
     giftState.theme = e.target.value;
+    updateThemePreview(giftState.theme);
+    if (window.smartQRAIState) {
+      window.smartQRAIState.theme = normalizeTheme(giftState.theme);
+    }
   });
 }
 
@@ -613,6 +638,15 @@ uploadForm.addEventListener('submit', async (event) => {
   const hasRecordedAudio = Boolean(audioBlob);
 
   if (file && !hasRecordedAudio) {
+    if (activeMediaTab === 'gif' && file.size > MAX_GIF_SIZE_BYTES) {
+      setStatus('GIF is large. Consider a smaller file for faster sharing.', true);
+      return;
+    }
+
+    if (activeMediaTab === 'video' && file.size > MAX_VIDEO_SIZE_BYTES) {
+      setStatus('Video exceeds 30MB limit. Please upload a smaller video.', true);
+      return;
+    }
     if (activeMediaTab === 'video' || activeMediaTab === 'text') {
       let processedFile = file;
 
@@ -636,15 +670,7 @@ uploadForm.addEventListener('submit', async (event) => {
         formData.append('image', processedFile, file.name);
       }
     } else if (activeMediaTab === 'gif') {
-      let processedFile = file;
-
-      if (file.type.startsWith('image/')) {
-        processedFile = await compressImageIfNeeded(file);
-      }
-
-      if (processedFile) {
-        formData.append('gif', processedFile, file.name);
-      }
+      formData.append('gif', file, file.name);
     }
   }
 
@@ -659,7 +685,7 @@ uploadForm.addEventListener('submit', async (event) => {
   resultEl.classList.remove('success');
 
   formData.append('encrypted', 'true');
-  formData.append('theme', giftState.theme);
+  formData.append('theme', normalizeTheme(giftState.theme));
 
   try {
     const data = await createGift(formData);

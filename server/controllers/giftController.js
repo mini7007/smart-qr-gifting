@@ -53,13 +53,19 @@ async function createGift(req, res) {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
+    const rawTheme = typeof req.body.theme === 'string' ? req.body.theme.trim().toLowerCase() : 'default';
+    const theme = ['default', 'birthday', 'love', 'festival', 'romantic', 'corporate'].includes(rawTheme)
+      ? rawTheme
+      : 'default';
+
     const gift = new Gift({
       publicId: await createUniqueGiftToken(),
       message,
       videoUrl: videoFile ? `/uploads/${videoFile.filename}` : '',
       audioUrl: audioFile ? `/uploads/${audioFile.filename}` : '',
       imageUrl: imageFile ? `/uploads/${imageFile.filename}` : '',
-      gifUrl: gifFile ? `/uploads/${gifFile.filename}` : ''
+      gifUrl: gifFile ? `/uploads/${gifFile.filename}` : '',
+      theme
     });
 
     await gift.save();
@@ -94,7 +100,8 @@ async function getGift(req, res) {
       audioUrl: gift.audioUrl,
       imageUrl: gift.imageUrl,
       gifUrl: gift.gifUrl,
-      createdAt: gift.createdAt
+      createdAt: gift.createdAt,
+      theme: gift.theme || 'default'
     });
   } catch (error) {
     const message = error && error.message ? error.message : 'Unexpected server error';
