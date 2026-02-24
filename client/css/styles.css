@@ -1,5 +1,10 @@
 :root {
   color-scheme: light;
+  --lux-dark: #432818;
+  --lux-deep: #6f1d1b;
+  --lux-gold: #bb9457;
+  --lux-accent: #99582a;
+  --lux-light: #ffe6a7;
   --primary: #7c3aed;
   --primary-light: #a78bfa;
   --bg-dark: #0b0f1a;
@@ -14,7 +19,7 @@
   --radius-lg: 22px;
   --radius-md: 14px;
   --shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
-  --gradient: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  --gradient: linear-gradient(135deg, var(--lux-gold), var(--lux-accent));
   --space-1: 0.5rem;
   --space-2: 0.75rem;
   --space-3: 1rem;
@@ -35,11 +40,11 @@
 html, body { margin: 0; min-height: 100%; overflow-x: hidden; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: var(--text);
+  color: var(--lux-light);
   background:
-    radial-gradient(circle at 10% -10%, rgba(124, 58, 237, 0.2), transparent 40%),
-    radial-gradient(circle at 110% 0%, rgba(167, 139, 250, 0.2), transparent 45%),
-    var(--bg-light);
+    radial-gradient(circle at 20% 20%, #6f1d1b 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, #99582a 0%, transparent 40%),
+    linear-gradient(135deg, #432818, #1a0f0f);
   transition: background-color 240ms ease, color 240ms ease;
 }
 :root[data-theme='dark'] body { background-color: var(--bg-dark); }
@@ -149,6 +154,12 @@ button, .button-link {
   display: inline-flex; justify-content: center; align-items: center; gap: 0.45rem;
   border: 0; border-radius: 12px; padding: 0.8rem 1rem; font: inherit; font-weight: 700; cursor: pointer;
   background: var(--gradient); color: #fff; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--lux-gold), var(--lux-accent));
+  color: #2b1a12;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(187, 148, 87, 0.35);
 }
 .button-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
 button:hover, .button-link:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(124, 58, 237, 0.28); }
@@ -481,41 +492,73 @@ body[data-gift-theme="corporate"] {
   to { transform: translateY(-100vh); opacity: 0; }
 }
 
-.mini-panda {
+.mini-panda-widget {
   position: fixed;
-  right: 1rem;
-  bottom: calc(1rem + env(safe-area-inset-bottom));
-  z-index: 60;
-}
-.mini-panda__fab {
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
+  bottom: 24px;
+  right: 24px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(14px);
-  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  z-index: 9999;
+  overflow: hidden;
+  animation: pandaPop 0.35s ease;
 }
-.mini-panda__panel {
-  width: min(92vw, 340px);
-  margin-bottom: 0.7rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow);
-  padding: 0.7rem;
-  animation: revealUp 180ms ease;
+
+.mini-panda-fab {
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffe6a7;
+  font-size: 1.2rem;
 }
-.mini-panda__panel header { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); }
-.mini-panda__messages { max-height: 220px; overflow: auto; display: grid; gap: 0.4rem; padding: 0.55rem 0; }
-.mini-panda__msg { font-size: 0.9rem; padding: 0.5rem 0.6rem; border-radius: 10px; }
-.mini-panda__msg--user { background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
-.mini-panda__msg--assistant { background: color-mix(in srgb, var(--surface) 94%, #fff); border: 1px solid var(--border); }
-.mini-panda__msg--error { background: color-mix(in srgb, var(--error) 12%, var(--surface)); }
-.mini-panda__typing { font-size: 0.78rem; color: var(--muted); }
-.mini-panda__composer { display: flex; gap: 0.4rem; }
-.mini-panda__composer input { min-height: 40px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); padding: 0.5rem; }
-.mini-panda__composer button { min-width: 72px; }
-.mini-panda__suggestions { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-.mini-panda__suggestions button { padding: 0.3rem 0.45rem; border-radius: 999px; font-size: 0.74rem; border: 1px solid var(--border); background: transparent; color: var(--text); }
-.mini-panda__notice { margin: 0.4rem 0 0; color: var(--error); font-size: 0.8rem; }
+
+.mini-panda-panel { padding: 0 12px 12px; }
+
+.mini-panda-header {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #ffe6a7;
+  display: flex;
+  justify-content: space-between;
+}
+
+.mini-panda-messages {
+  height: 260px;
+  overflow-y: auto;
+  padding: 12px;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.mini-panda-msg { font-size: 0.9rem; padding: 0.55rem 0.65rem; border-radius: 10px; color: #fff; }
+.mini-panda-msg--user { background: rgba(187, 148, 87, 0.25); }
+.mini-panda-msg--assistant { background: rgba(255, 255, 255, 0.12); }
+.mini-panda-typing { color: #ffe6a7; font-size: 0.8rem; }
+
+.mini-panda-composer { display: flex; gap: 0.4rem; padding: 0 12px 12px; }
+.mini-panda-composer input {
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 0.5rem;
+  flex: 1;
+}
+
+@keyframes pandaPop {
+  from {
+    transform: translateY(40px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
