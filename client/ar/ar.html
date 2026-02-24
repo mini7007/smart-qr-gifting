@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>View Gift in AR | Smart QR Gifting</title>
+  <link rel="stylesheet" href="../css/ar.css" />
+</head>
+<body>
+  <main class="ar-app" id="arApp">
+    <section class="ar-overlay ar-overlay--top" aria-live="polite">
+      <p class="ar-status" id="arStatus">Loading AR…</p>
+      <p class="ar-hint" id="arHint">Move phone slowly</p>
+    </section>
+
+    <section class="ar-overlay ar-overlay--center" id="arTapHint" hidden>
+      <button class="ar-place-btn" id="arPlaceBtn" type="button">Tap to place gift</button>
+    </section>
+
+    <section class="ar-overlay ar-overlay--bottom">
+      <a class="ar-back-link" id="arBackLink" href="../view.html">← Back to gift</a>
+    </section>
+
+    <section class="ar-fallback" id="arFallback" hidden>
+      <h1>AR unavailable on this device</h1>
+      <p id="arFallbackMessage">Please use a modern mobile browser with camera permissions enabled.</p>
+      <a class="ar-fallback-link" id="arFallbackViewLink" href="../view.html">Open standard gift view</a>
+    </section>
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script type="module" src="../js/ar.js"></script>
+</body>
+</html>
