@@ -30,7 +30,14 @@ const asyncRoute = (handler) => (req, res, next) => {
   });
 };
 
-router.post('/', upload.single('video'), asyncRoute(createGift));
+router.post(
+  '/',
+  upload.fields([
+    { name: 'video', maxCount: 1 },
+    { name: 'audio', maxCount: 1 }
+  ]),
+  asyncRoute(createGift)
+);
 router.get('/:id', asyncRoute(getGift));
 
 module.exports = router;

@@ -10,14 +10,20 @@ function buildPublicBaseUrl(req) {
 async function createGift(req, res) {
   try {
     console.log('[gift] body:', req.body);
-    console.log('[gift] file:', req.file?.filename);
+
+    const videoFile = req.files?.video?.[0] || null;
+    const audioFile = req.files?.audio?.[0] || null;
+
+    console.log('[gift] video:', !!videoFile);
+    console.log('[gift] audio:', !!audioFile);
 
     const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
     if (!message) {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    const videoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const mediaFile = videoFile || audioFile;
+    const videoUrl = mediaFile ? `/uploads/${mediaFile.filename}` : null;
 
     const gift = new Gift({
       message,
