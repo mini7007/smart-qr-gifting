@@ -15,6 +15,18 @@ Smart QR Gifting lets users create heartfelt digital gifts and share them instan
 - Multilingual ready
 - Voice features (preview)
 
+
+## Supported media uploads
+
+- Text message
+- Video upload
+- Voice recording
+- Image upload
+- GIF upload
+
+Some formats may depend on backend configuration.
+
+
 ## 🔐 Security
 
 The backend is designed with production safety in mind:

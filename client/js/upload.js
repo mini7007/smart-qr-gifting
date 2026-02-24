@@ -38,6 +38,7 @@ let audioStream = null;
 let ttsGenerated = false;
 let ttsVoices = [];
 let ttsIsGenerating = false;
+let activeMediaTab = 'text';
 
 function t(key) {
   return window.smartQRI18n ? window.smartQRI18n.t(key) : key;
@@ -378,11 +379,44 @@ function initTabs() {
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
 
-      const isVideo = tab.dataset.tab === 'video' || tab.dataset.tab === 'text';
-      const isAudio = tab.dataset.tab === 'audio';
-      futureHint.classList.toggle('hidden', isVideo || isAudio);
-      document.getElementById('video').disabled = tab.dataset.tab !== 'video' && tab.dataset.tab !== 'text';
-      audioRecorderPanel.classList.toggle('hidden', !isAudio);
+      activeMediaTab = tab.dataset.tab;
+      const videoInput = document.getElementById('video');
+
+      const activeTab = tab.dataset.tab;
+
+      // show/hide future hint
+      const isFutureTab = ['image', 'gif'].includes(activeTab);
+      futureHint.classList.toggle('hidden', !isFutureTab);
+
+      // audio panel visibility
+      audioRecorderPanel.classList.toggle('hidden', activeTab !== 'audio');
+
+      // smart file enable logic
+      if (activeTab === 'video' || activeTab === 'text') {
+        videoInput.disabled = false;
+        videoInput.accept = 'video/*';
+      } else if (activeTab === 'image') {
+        videoInput.disabled = false;
+        videoInput.accept = 'image/*';
+      } else if (activeTab === 'gif') {
+        videoInput.disabled = false;
+        videoInput.accept = 'image/gif';
+      } else {
+        videoInput.disabled = true;
+      }
+
+      const fileHint = document.getElementById('fileTypeHint');
+      if (fileHint) {
+        if (activeMediaTab === 'image') {
+          fileHint.textContent = 'Upload JPG, PNG or WEBP image';
+        } else if (activeMediaTab === 'gif') {
+          fileHint.textContent = 'Upload animated GIF';
+        } else if (activeMediaTab === 'video') {
+          fileHint.textContent = 'Upload MP4, WebM, MOV (max 30MB)';
+        } else {
+          fileHint.textContent = '';
+        }
+      }
     });
   });
 }
@@ -402,7 +436,13 @@ uploadForm.addEventListener('submit', async (event) => {
   formData.append('message', message);
 
   if (file) {
-    formData.append('video', file);
+    if (activeMediaTab === 'video' || activeMediaTab === 'text') {
+      formData.append('video', file);
+    } else if (activeMediaTab === 'image') {
+      formData.append('image', file);
+    } else if (activeMediaTab === 'gif') {
+      formData.append('gif', file);
+    }
   }
 
   if (audioBlob) {
