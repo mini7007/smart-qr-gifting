@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const giftRoutes = require('./routes/giftRoutes');
-const aiRoutes = require('./routes/ai');
+const aiChatRoutes = require('./routes/aiChat');
 const Gift = require('./models/Gift');
 const { buildGiftLookupQuery } = require('./controllers/giftController');
 
@@ -220,7 +220,7 @@ app.use(
 app.options('*', cors());
 
 /* -------------------- Body parsers -------------------- */
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 /* -------------------- Static uploads -------------------- */
@@ -273,7 +273,7 @@ app.use('/api/gifts', (req, res, next) => {
 });
 
 app.use('/api/gifts', giftRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiChatRoutes);
 
 /* -------------------- Error handler -------------------- */
 app.use((err, _req, res, _next) => {
