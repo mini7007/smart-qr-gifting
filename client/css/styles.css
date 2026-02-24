@@ -238,6 +238,18 @@ button:focus-visible, .button-link:focus-visible, textarea:focus-visible, input:
   position: relative;
 }
 
+.tts-generate-btn.is-disabled {
+  opacity: 0.6;
+  filter: saturate(0.8);
+}
+
+.tts-helper {
+  margin: -0.1rem 0 0;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--muted) 82%, var(--text));
+  opacity: 0.82;
+}
+
 .tts-generate-btn.is-generating .tts-pulse {
   width: 10px;
   height: 10px;

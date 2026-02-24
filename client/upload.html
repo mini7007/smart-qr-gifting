@@ -75,11 +75,12 @@
               <div class="tts-controls">
                 <label for="ttsVoiceSelect" class="sr-only">Select voice</label>
                 <select id="ttsVoiceSelect" class="tts-voice-select" aria-label="Select auto voice"></select>
-                <button id="generateVoiceBtn" type="button" class="audio-btn tts-generate-btn" aria-label="Generate voice from typed message">
+                <button id="generateVoiceBtn" type="button" class="audio-btn tts-generate-btn is-disabled" aria-label="Generate voice from typed message" disabled title="Coming soon">
                   <span class="tts-pulse" aria-hidden="true"></span>
                   Generate from text
                 </button>
               </div>
+              <p class="tts-helper">Neural voice generation is arriving soon.</p>
               <p id="ttsError" class="audio-error hidden" role="alert"></p>
               <audio id="ttsPreview" class="audio-preview tts-preview hidden" controls preload="metadata" aria-label="Generated voice preview"></audio>
             </section>
