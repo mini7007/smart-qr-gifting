@@ -46,7 +46,14 @@
           <textarea id="message" maxlength="300" data-i18n-placeholder="upload.messagePlaceholder" required></textarea>
 
           <label for="video" data-i18n="upload.videoLabel"></label>
-          <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
+          <div id="dropZone" class="drop-zone">
+            <input type="file" id="video" accept="video/mp4,video/webm,video/ogg,video/quicktime" />
+          </div>
+
+          <div id="filePreviewWrap" class="file-preview hidden">
+            <img id="imagePreview" class="hidden" alt="Uploaded file preview" />
+            <video id="videoPreview" class="hidden" controls preload="metadata"></video>
+          </div>
 
           <section id="audioRecorderPanel" class="audio-recorder hidden" aria-live="polite" data-audio-recorder="true">
             <div class="audio-recorder-head">
@@ -89,6 +96,16 @@
           <div id="uploadProgressWrap" class="progress-wrap hidden" aria-live="polite">
             <div class="progress-bar"><span id="uploadProgressBar"></span></div>
             <small id="uploadProgressText">0%</small>
+          </div>
+
+          <div class="theme-picker">
+            <label for="themeSelect">Gift Theme</label>
+            <select id="themeSelect">
+              <option value="default">Default</option>
+              <option value="birthday">Birthday</option>
+              <option value="romantic">Romantic</option>
+              <option value="corporate">Corporate</option>
+            </select>
           </div>
 
           <button id="submitBtn" type="submit" data-i18n="upload.submit"></button>

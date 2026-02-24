@@ -98,6 +98,53 @@ textarea, input[type='file'] {
 }
 textarea { min-height: 120px; resize: vertical; }
 
+.drop-zone {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 0.45rem;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.drop-zone.drag-over {
+  border-color: color-mix(in srgb, var(--primary) 70%, #fff);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.file-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.65rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.file-preview img,
+.file-preview video {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, #000 18%, var(--surface));
+}
+
+.theme-picker {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.theme-picker select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  color: var(--text);
+  font: inherit;
+  padding: 0.7rem 0.75rem;
+}
+
 button, .button-link {
   display: inline-flex; justify-content: center; align-items: center; gap: 0.45rem;
   border: 0; border-radius: 12px; padding: 0.8rem 1rem; font: inherit; font-weight: 700; cursor: pointer;

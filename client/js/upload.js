@@ -40,8 +40,117 @@ let ttsVoices = [];
 let ttsIsGenerating = false;
 let activeMediaTab = 'text';
 
+const giftState = {
+  activeTab: 'text',
+  uploadedFile: null,
+  recordedAudio: null,
+  previewUrl: '',
+  theme: 'default',
+  encryptionEnabled: true
+};
+
 function t(key) {
   return window.smartQRI18n ? window.smartQRI18n.t(key) : key;
+}
+
+function setActiveTab(tab) {
+  giftState.activeTab = tab;
+}
+
+function setUploadedFile(file) {
+  giftState.uploadedFile = file;
+}
+
+function setRecordedAudio(blob) {
+  giftState.recordedAudio = blob;
+}
+
+function clearPreview() {
+  if (giftState.previewUrl) {
+    URL.revokeObjectURL(giftState.previewUrl);
+  }
+  giftState.previewUrl = '';
+
+  const wrap = document.getElementById('filePreviewWrap');
+  const img = document.getElementById('imagePreview');
+  const video = document.getElementById('videoPreview');
+
+  if (img) {
+    img.removeAttribute('src');
+    img.classList.add('hidden');
+  }
+
+  if (video) {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    video.classList.add('hidden');
+  }
+
+  if (wrap) {
+    wrap.classList.add('hidden');
+  }
+}
+
+function handleFilePreview(file) {
+  if (!file) {
+    clearPreview();
+    return;
+  }
+
+  const wrap = document.getElementById('filePreviewWrap');
+  const img = document.getElementById('imagePreview');
+  const video = document.getElementById('videoPreview');
+  if (!wrap || !img || !video) return;
+
+  wrap.classList.remove('hidden');
+
+  img.classList.add('hidden');
+  video.classList.add('hidden');
+
+  if (giftState.previewUrl) {
+    URL.revokeObjectURL(giftState.previewUrl);
+  }
+
+  const url = URL.createObjectURL(file);
+  giftState.previewUrl = url;
+
+  if (file.type.startsWith('image/')) {
+    img.src = url;
+    img.classList.remove('hidden');
+  } else if (file.type.startsWith('video/')) {
+    video.src = url;
+    video.classList.remove('hidden');
+  }
+}
+
+function initDragDrop() {
+  const dropZone = document.getElementById('dropZone');
+  const videoInput = document.getElementById('video');
+  if (!dropZone || !videoInput) return;
+
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach((eventName) => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('drag-over');
+    });
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    videoInput.files = e.dataTransfer.files;
+    setUploadedFile(file);
+    handleFilePreview(file);
+  });
 }
 
 function setStatus(message, isError = false, isLoading = false) {
@@ -126,6 +235,7 @@ function setTTSLoadingState(isLoading) {
 
 function setGeneratedAudioBlob(blob, source = 'recording') {
   audioBlob = blob;
+  setRecordedAudio(blob);
   ttsGenerated = source === 'tts';
   if (source === 'recording') {
     clearTTSAudioPreview();
@@ -380,6 +490,7 @@ function initTabs() {
       tab.setAttribute('aria-selected', 'true');
 
       activeMediaTab = tab.dataset.tab;
+      setActiveTab(tab.dataset.tab);
       const videoInput = document.getElementById('video');
 
       const activeTab = tab.dataset.tab;
@@ -429,11 +540,28 @@ function initTabs() {
   });
 }
 
+const themeSelect = document.getElementById('themeSelect');
+
+if (themeSelect) {
+  themeSelect.addEventListener('change', (e) => {
+    giftState.theme = e.target.value;
+  });
+}
+
+const videoInput = document.getElementById('video');
+if (videoInput) {
+  videoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    setUploadedFile(file || null);
+    handleFilePreview(file);
+  });
+}
+
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   const message = document.getElementById('message').value.trim();
-  const file = document.getElementById('video').files[0];
+  const file = giftState.uploadedFile || document.getElementById('video').files[0];
 
   if (!message) {
     setStatus(t('upload.statusMissingMessage'), true);
@@ -465,6 +593,9 @@ uploadForm.addEventListener('submit', async (event) => {
   setStatus(t('upload.statusLoading'), false, true);
   resultEl.classList.add('hidden');
   resultEl.classList.remove('success');
+
+  formData.append('encrypted', 'true');
+  formData.append('theme', giftState.theme);
 
   try {
     const data = await createGift(formData);
@@ -533,3 +664,10 @@ document.addEventListener('smartqr:languagechange', () => {
 
 initTabs();
 initAudioRecorder();
+initDragDrop();
+
+window.addEventListener('beforeunload', () => {
+  clearPreview();
+  clearAudioPreview();
+  clearTTSAudioPreview();
+});
