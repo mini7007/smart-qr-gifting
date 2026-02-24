@@ -1,16 +1,17 @@
 (function () {
   if (typeof API_BASE !== 'string') return;
 
-  const MAX_TRIES = 3;
+  const PANDA_STATE_KEY = 'miniPandaOpen';
 
   const root = document.createElement('section');
+  root.id = 'miniPandaWidget';
   root.className = 'mini-panda-widget';
   root.innerHTML = `
-    <button class="mini-panda-fab" aria-label="Open Mini Panda assistant">🐼</button>
+    <button class="mini-panda-fab" aria-label="Open Mini Panda assistant" aria-expanded="false">🐼 Mini Panda</button>
     <div class="mini-panda-panel" hidden>
       <header class="mini-panda-header">
         <strong>Mini Panda</strong>
-        <small class="mini-panda-tries">3 tries left</small>
+        <small class="mini-panda-status">Always here ✨</small>
       </header>
       <div class="mini-panda-messages" aria-live="polite"></div>
       <form class="mini-panda-composer">
@@ -27,15 +28,13 @@
   const messages = root.querySelector('.mini-panda-messages');
   const form = root.querySelector('.mini-panda-composer');
   const input = form.querySelector('input');
-  const triesLabel = root.querySelector('.mini-panda-tries');
 
-  function usedTries() {
-    return Number(sessionStorage.getItem('panda_tries') || 0);
+  function savePandaState(isOpen) {
+    localStorage.setItem(PANDA_STATE_KEY, isOpen ? '1' : '0');
   }
 
-  function syncTries() {
-    const left = Math.max(0, MAX_TRIES - usedTries());
-    triesLabel.textContent = `${left} tries left`;
+  function loadPandaState() {
+    return localStorage.getItem(PANDA_STATE_KEY) === '1';
   }
 
   function showPandaMessage(text, role = 'assistant') {
@@ -58,6 +57,22 @@
     typing.className = 'mini-panda-typing';
     typing.textContent = 'Mini Panda is typing...';
     messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function openPanda() {
+    panel.hidden = false;
+    fab.classList.add('active');
+    fab.setAttribute('aria-expanded', 'true');
+    savePandaState(true);
+    input.focus();
+  }
+
+  function closePanda() {
+    panel.hidden = true;
+    fab.classList.remove('active');
+    fab.setAttribute('aria-expanded', 'false');
+    savePandaState(false);
   }
 
   async function askMiniPanda(message) {
@@ -76,15 +91,16 @@
       return data.reply;
     } catch (err) {
       console.error(err);
-      return '🐼 Mini Panda is taking a bamboo break. Try again!';
+      return 'Mini Panda is thinking… try again in a moment 🐼';
     }
   }
 
   fab.addEventListener('click', () => {
-    const isHidden = panel.hidden;
-    panel.hidden = !isHidden;
-    fab.classList.toggle('active', isHidden);
-    if (isHidden) input.focus();
+    if (panel.hidden) {
+      openPanda();
+      return;
+    }
+    closePanda();
   });
 
   form.addEventListener('submit', async (event) => {
@@ -92,15 +108,6 @@
     const message = input.value.trim();
 
     if (!message) return;
-
-    const used = usedTries();
-    if (used >= MAX_TRIES) {
-      showPandaMessage('🐼 Free tries finished!');
-      return;
-    }
-
-    sessionStorage.setItem('panda_tries', String(used + 1));
-    syncTries();
 
     input.value = '';
     showPandaMessage(message, 'user');
@@ -112,5 +119,7 @@
     showPandaMessage(reply, 'assistant');
   });
 
-  syncTries();
+  if (loadPandaState()) {
+    openPanda();
+  }
 })();
