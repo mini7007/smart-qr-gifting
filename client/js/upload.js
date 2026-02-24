@@ -5,9 +5,21 @@ const qrImageEl = document.getElementById('qrImage');
 const openLinkEl = document.getElementById('openLink');
 const submitBtn = document.getElementById('submitBtn');
 
-function setStatus(message, isError = false) {
+const defaultBtnLabel = 'Generate QR code';
+
+function setStatus(message, isError = false, isLoading = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle('error', isError);
+  statusEl.classList.toggle('loading', isLoading);
+}
+
+function setLoadingState(isLoading) {
+  submitBtn.disabled = isLoading;
+  if (isLoading) {
+    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Generating...';
+  } else {
+    submitBtn.textContent = defaultBtnLabel;
+  }
 }
 
 uploadForm.addEventListener('submit', async (event) => {
@@ -28,9 +40,10 @@ uploadForm.addEventListener('submit', async (event) => {
     formData.append('video', file);
   }
 
-  submitBtn.disabled = true;
-  setStatus('Creating gift and generating your QR code...');
+  setLoadingState(true);
+  setStatus('Creating gift and generating your QR code', false, true);
   resultEl.classList.add('hidden');
+  resultEl.classList.remove('success');
 
   try {
     const response = await fetch(`${API_BASE}/api/gifts`, {
@@ -54,16 +67,23 @@ uploadForm.addEventListener('submit', async (event) => {
 
     // ✅ USE BACKEND URL DIRECTLY
     openLinkEl.href = data.viewUrl;
-    openLinkEl.target = "_blank";
-    openLinkEl.rel = "noopener noreferrer";
+    openLinkEl.target = '_blank';
+    openLinkEl.rel = 'noopener noreferrer';
 
     resultEl.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      resultEl.classList.add('success');
+      openLinkEl.classList.remove('cta-animated');
+      void openLinkEl.offsetWidth;
+      openLinkEl.classList.add('cta-animated');
+    });
+
     setStatus('Gift created successfully. Save or share your QR code.');
   } catch (err) {
     console.error('QR generation failed:', err);
     alert('Failed to generate QR. Please try again.');
     setStatus(err.message || 'Could not create gift right now.', true);
   } finally {
-    submitBtn.disabled = false;
+    setLoadingState(false);
   }
 });
