@@ -4,6 +4,7 @@ const statusEl = document.getElementById('viewerStatus');
 const messageEl = document.getElementById('giftMessage');
 const videoEl = document.getElementById('videoPlayer');
 const spotlightEl = document.getElementById('giftSpotlight');
+const arCtaEl = document.getElementById('giftArCta');
 
 let activeCategory = 'default';
 
@@ -138,6 +139,23 @@ function applyThemeExperience(theme) {
   runEntrySequence();
 }
 
+
+function renderArButton(giftId) {
+  if (!arCtaEl || !giftId) {
+    return;
+  }
+
+  arCtaEl.innerHTML = '';
+
+  const arButton = document.createElement('a');
+  arButton.className = 'gift-ar-button';
+  arButton.href = `ar.html?giftId=${encodeURIComponent(giftId)}`;
+  arButton.setAttribute('aria-label', 'View gift in augmented reality');
+  arButton.textContent = '🎥 View in AR';
+
+  arCtaEl.appendChild(arButton);
+}
+
 function resolveMediaUrl(videoUrl) {
   if (!videoUrl) {
     return '';
@@ -152,6 +170,7 @@ function resolveMediaUrl(videoUrl) {
 
 async function loadGift() {
   const id = getGiftIdFromUrl();
+  renderArButton(id);
 
   if (!id) {
     setStatus('Missing gift link. Please scan a valid QR code.', true);

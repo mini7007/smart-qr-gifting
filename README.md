@@ -107,3 +107,29 @@ Render gift page experience.
 - Neural TTS integration
 - Theme packs + seasonal animations
 - Gift analytics + campaign templates
+
+
+## 🧭 WebAR Gift Viewer (Phase 1 MVP)
+
+Gift reveal pages now include a **🎥 View in AR** button that deep-links to `ar.html?giftId=<id>`.
+
+### Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Then open:
+
+- Standard gift view: `http://localhost:5000/view.html?id=<giftId>`
+- AR view: `http://localhost:5000/ar.html?giftId=<giftId>`
+- Alternate nested AR path (embed-friendly): `http://localhost:5000/ar/ar.html?giftId=<giftId>`
+
+### WebAR notes
+
+- Uses **WebXR hit-test + Three.js** with lazy loading for mobile AR surface placement.
+- Supports image, GIF, and video textured planes.
+- Video is autoplay, muted, and looped for mobile compatibility.
+- Includes permission denial + unsupported-browser fallback overlays.
+
