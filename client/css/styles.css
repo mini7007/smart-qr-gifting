@@ -382,3 +382,46 @@ button:focus-visible, .button-link:focus-visible, textarea:focus-visible, input:
   .audio-actions .audio-btn { width: 100%; }
   .tts-controls > * { width: 100%; }
 }
+
+body[data-gift-theme="birthday"] {
+  background:
+    radial-gradient(circle at 20% 20%, #ff7bd5 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #7b9cff 0%, transparent 40%),
+    #0b1020;
+}
+
+body[data-gift-theme="romantic"] {
+  background:
+    radial-gradient(circle at 50% 20%, #ff4d6d 0%, transparent 45%),
+    #0b1020;
+}
+
+body[data-gift-theme="corporate"] {
+  background:
+    linear-gradient(135deg, #0f172a, #111827);
+}
+
+.gift-reveal {
+  opacity: 0;
+  transform: scale(0.96) translateY(20px);
+  transition: all 600ms cubic-bezier(.21,1.02,.73,1);
+}
+
+.gift-reveal.reveal-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.gift-success-title {
+  margin-bottom: 0.9rem;
+}
+
+.success-pulse {
+  animation: successGlow 900ms ease-out;
+}
+
+@keyframes successGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+  100% { filter: brightness(1); }
+}
