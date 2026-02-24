@@ -44,8 +44,12 @@ uploadForm.addEventListener('submit', async (event) => {
       throw new Error(data.error || 'Could not create gift right now.');
     }
 
-    qrImageEl.src = data.qr;
-    openLinkEl.href = data.viewUrl;
+    // ✅ FIXED mapping
+    qrImageEl.src = data.qrCodeUrl;
+    openLinkEl.href = `${API_BASE}/gift/${data.giftId}`;
+    openLinkEl.target = "_blank";
+    openLinkEl.rel = "noopener noreferrer";
+
     resultEl.classList.remove('hidden');
     setStatus('Gift created successfully. Save or share your QR code.');
   } catch (err) {
