@@ -26,6 +26,7 @@ const generateVoiceBtn = document.getElementById('generateVoiceBtn');
 const ttsPreview = document.getElementById('ttsPreview');
 const ttsError = document.getElementById('ttsError');
 const ttsLoadingState = document.getElementById('ttsLoadingState');
+const enhancedPreviewEl = document.getElementById('enhancedPreview');
 
 let latestGiftUrl = '';
 let latestQrDataUrl = '';
@@ -41,6 +42,7 @@ let ttsIsGenerating = false;
 let activeMediaTab = 'text';
 const MAX_GIF_SIZE_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_SIZE_BYTES = 30 * 1024 * 1024;
+let previewDebounceId = null;
 
 const giftState = {
   activeTab: 'text',
@@ -479,6 +481,70 @@ function normalizeMessage(text) {
     .trim();
 }
 
+
+
+const ENHANCER_THEME_EMOJIS = {
+  birthday: ['🎉', '🎂', '🥳'],
+  wedding: ['💍', '❤️', '✨'],
+  love: ['💍', '❤️', '✨'],
+  romantic: ['💍', '❤️', '✨'],
+  corporate: ['🎉', '🤝'],
+  surprise: ['🎁', '✨'],
+  default: ['🎁', '✨']
+};
+
+function smoothTextPreview(text) {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.!?])/g, '$1')
+    .trim()
+    .replace(/(^|[.!?]\s+)([a-z])/g, (match, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+}
+
+function enhanceMessagePreview(message, theme) {
+  const raw = normalizeMessage(message);
+  if (!raw) return '';
+
+  let output = raw;
+  const short = raw.toLowerCase();
+  if (short === 'hbd' || short === 'hbday') {
+    output = 'Happy Birthday';
+  } else if (raw.length <= 14 && /[A-Za-z]/.test(raw) && raw.split(/\s+/).length <= 2) {
+    output = `${raw} Wishing you a beautiful day`;
+  }
+
+  output = smoothTextPreview(output);
+  if (!/[.!?…]$/.test(output)) {
+    output += '!';
+  }
+
+  const emojis = ENHANCER_THEME_EMOJIS[theme] || ENHANCER_THEME_EMOJIS.default;
+  if (!/[🎉🎂🥳💍❤️✨🎁🤝]/u.test(output)) {
+    output = `${output} ${emojis.slice(0, output.length > 120 ? 1 : 2).join('')}`;
+  }
+
+  return output.trim();
+}
+
+function updateEnhancedPreview() {
+  if (!enhancedPreviewEl || !messageEl) return;
+
+  const enhanced = enhanceMessagePreview(messageEl.value, normalizeTheme(giftState.theme));
+  if (!enhanced) {
+    enhancedPreviewEl.classList.add('hidden');
+    enhancedPreviewEl.textContent = '';
+    return;
+  }
+
+  enhancedPreviewEl.textContent = `✨ Enhanced preview: ${enhanced}`;
+  enhancedPreviewEl.classList.remove('hidden');
+}
+
+function debounceEnhancedPreview() {
+  window.clearTimeout(previewDebounceId);
+  previewDebounceId = window.setTimeout(updateEnhancedPreview, 300);
+}
+
 function softCelebrationPulse() {
   document.body.classList.add('success-pulse');
   setTimeout(() => {
@@ -609,6 +675,7 @@ if (themeSelect) {
     if (window.smartQRAIState) {
       window.smartQRAIState.theme = normalizeTheme(giftState.theme);
     }
+    updateEnhancedPreview();
   });
 }
 
@@ -634,7 +701,8 @@ uploadForm.addEventListener('submit', async (event) => {
 
   const formData = new FormData();
   const normalizedMessage = normalizeMessage(message);
-  formData.append('message', normalizedMessage);
+  const enhancedMessage = enhanceMessagePreview(normalizedMessage, normalizeTheme(giftState.theme));
+  formData.append('message', enhancedMessage || normalizedMessage);
   const hasRecordedAudio = Boolean(audioBlob);
 
   if (file && !hasRecordedAudio) {
@@ -763,7 +831,12 @@ document.addEventListener('smartqr:languagechange', () => {
   submitBtn.textContent = t('upload.submit');
 });
 
+if (messageEl) {
+  messageEl.addEventListener('input', debounceEnhancedPreview);
+}
+
 initTabs();
+updateEnhancedPreview();
 initAudioRecorder();
 initDragDrop();
 
