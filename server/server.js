@@ -5,7 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const giftRoutes = require('./routes/giftRoutes');
 const Gift = require('./models/Gift');
-const { buildGiftLookupQuery } = require('./controllers/giftController');
+const { buildGiftLookupQuery, getGift } = require('./controllers/giftController');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -262,6 +262,14 @@ app.get('/gift/:publicId', async (req, res) => {
     console.error('[gift] Failed to render gift page:', error);
     return res.status(404).type('html').send(renderNotFoundPage());
   }
+});
+
+
+app.get('/api/gift/:publicId', (req, res, next) => {
+  if (!mongoReady) {
+    return res.status(503).json({ error: 'Database is not connected yet. Please retry shortly.' });
+  }
+  return getGift(req, res, next);
 });
 
 /* -------------------- Mongo guard -------------------- */

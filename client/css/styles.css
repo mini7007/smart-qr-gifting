@@ -883,6 +883,31 @@ body.theme-corporate .gift-spotlight::after {
     box-shadow: 0 14px 42px color-mix(in srgb, var(--gift-theme-primary) 22%, transparent);
   }
 }
+
+
+body.is-loading-gift .gift-message {
+  opacity: 0.45;
+}
+
+body.birthday-theme,
+body.wedding-theme,
+body.corporate-theme,
+body.love-theme,
+body.festival-theme,
+body.default-theme {
+  min-height: 100vh;
+}
+
+body.birthday-theme .particles-confetti .view-particles__dot {
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.25, 1);
+}
+
+@media (max-width: 479px) {
+  body.birthday-theme .view-particles__dot {
+    width: 6px;
+    height: 6px;
+  }
+}
 .theme-preview[data-theme="wedding"] .theme-preview__card {
   background: linear-gradient(135deg, #d4af37, #8f6c29);
 }

@@ -5,12 +5,28 @@ const messageEl = document.getElementById('giftMessage');
 const videoEl = document.getElementById('videoPlayer');
 const spotlightEl = document.getElementById('giftSpotlight');
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
+let activeCategory = 'default';
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle('error', isError);
+}
+
+function setLoadingState(isLoading) {
+  document.body.classList.toggle('is-loading-gift', isLoading);
+  if (isLoading) {
+    setStatus('Loading your gift...');
+  }
+}
+
+function getGiftIdFromUrl() {
+  const pathSegments = window.location.pathname.split('/').filter(Boolean);
+  if (pathSegments.length >= 2 && pathSegments[pathSegments.length - 2] === 'gift') {
+    return pathSegments[pathSegments.length - 1];
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id') || '';
 }
 
 function getTheme(themeName) {
@@ -66,8 +82,15 @@ function createParticles(themeName, themeToken) {
     const particle = document.createElement('span');
     particle.className = 'view-particles__dot';
     particle.style.left = `${Math.random() * 100}%`;
-    particle.style.animationDelay = `${Math.random() * themeToken.animationSpeed}s`;
-    particle.style.animationDuration = `${themeToken.animationSpeed + (Math.random() * 4 - 2)}s`;
+
+    if (themeName === 'birthday') {
+      particle.style.animationDelay = `${0.22 * i + Math.random() * 0.35}s`;
+      particle.style.animationDuration = `${themeToken.animationSpeed + 6 + Math.random() * 4}s`;
+    } else {
+      particle.style.animationDelay = `${Math.random() * themeToken.animationSpeed}s`;
+      particle.style.animationDuration = `${themeToken.animationSpeed + (Math.random() * 4 - 2)}s`;
+    }
+
     particle.style.setProperty('--particle-sway', `${(Math.random() * 24 - 12).toFixed(1)}px`);
     layer.appendChild(particle);
   }
@@ -77,17 +100,26 @@ function runEntrySequence() {
   document.body.classList.remove('experience-bg-visible', 'experience-particles-visible', 'experience-card-visible', 'experience-message-visible');
 
   window.setTimeout(() => document.body.classList.add('experience-bg-visible'), 0);
-  window.setTimeout(() => document.body.classList.add('experience-particles-visible'), 200);
-  window.setTimeout(() => document.body.classList.add('experience-card-visible'), 400);
-  window.setTimeout(() => document.body.classList.add('experience-message-visible'), 600);
+  window.setTimeout(() => document.body.classList.add('experience-particles-visible'), 220);
+  window.setTimeout(() => document.body.classList.add('experience-card-visible'), 440);
+  window.setTimeout(() => document.body.classList.add('experience-message-visible'), 680);
 }
 
 function applyThemeExperience(theme) {
   const { name, config } = getTheme(theme);
+  activeCategory = name;
 
-  document.body.classList.add('viewer-experience');
-  document.body.classList.remove(...(window.GIFT_THEME_CLASS_LIST || []));
-  document.body.classList.add(`theme-${name}`);
+  const categoryClassMap = {
+    birthday: 'birthday-theme',
+    wedding: 'wedding-theme',
+    corporate: 'corporate-theme',
+    love: 'love-theme',
+    festival: 'festival-theme',
+    default: 'default-theme'
+  };
+
+  const categoryClass = categoryClassMap[name] || categoryClassMap.default;
+  document.body.className = `viewer-experience ${categoryClass} theme-${name}`;
   document.body.dataset.giftTheme = name;
 
   document.body.style.setProperty('--gift-theme-primary', config.primary);
@@ -119,17 +151,21 @@ function resolveMediaUrl(videoUrl) {
 }
 
 async function loadGift() {
+  const id = getGiftIdFromUrl();
+
   if (!id) {
     setStatus('Missing gift link. Please scan a valid QR code.', true);
     return;
   }
 
+  setLoadingState(true);
+
   try {
-    const data = await window.fetchJson(`/gifts/${encodeURIComponent(id)}`);
+    const data = await window.fetchJson(`/gift/${encodeURIComponent(id)}`);
+    const message = data?.enhancedMessage || data?.message || 'A surprise gift is waiting for you.';
 
-    messageEl.textContent = data.message;
-
-    applyThemeExperience(data.theme);
+    messageEl.textContent = message;
+    applyThemeExperience(data?.theme || 'default');
 
     if (data.videoUrl) {
       videoEl.src = resolveMediaUrl(data.videoUrl);
@@ -141,8 +177,17 @@ async function loadGift() {
       spotlightEl.classList.add('reveal-active');
     }
   } catch (error) {
+    console.error('[gift-view] Failed to load gift:', error);
     setStatus(error.message || 'Unable to load this gift.', true);
+    applyThemeExperience('default');
+  } finally {
+    setLoadingState(false);
   }
 }
 
-loadGift();
+window.addEventListener('DOMContentLoaded', loadGift);
+window.smartQRGiftView = {
+  get category() {
+    return activeCategory;
+  }
+};
