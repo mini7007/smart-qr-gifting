@@ -16,11 +16,23 @@
         <video id="videoPlayer" class="gift-video hidden" controls playsinline preload="metadata"></video>
         <p id="giftMessage" class="gift-message"></p>
       </div>
-      <div class="gift-ar-cta" id="giftArCta"></div>
+      <div id="ar-section" class="ar-section">
+        <button id="launch-ar-btn" class="ar-launch-btn">
+          🎥 View in AR
+        </button>
+
+        <p class="ar-hint">
+          Move your camera to a flat surface to place the gift
+        </p>
+      </div>
+
+      <div id="ar-container" class="ar-container hidden"></div>
     </section>
   </main>
   <script src="js/config.js"></script>
   <script src="utils/themeResolver.js"></script>
   <script type="module" src="js/view.js"></script>
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <script src="/js/ar-viewer.js"></script>
 </body>
 </html>

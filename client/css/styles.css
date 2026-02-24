@@ -951,3 +951,41 @@ body.birthday-theme .particles-confetti .view-particles__dot {
     width: 100%;
   }
 }
+
+.ar-section {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.ar-launch-btn {
+  background: linear-gradient(135deg, #bb9457, #99582a);
+  color: #fff;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+}
+
+.ar-launch-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.ar-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.ar-container {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+}
+
+.hidden {
+  display: none;
+}
