@@ -22,6 +22,7 @@
       <div class="header-actions">
         <label class="sr-only" for="languageSwitcher">Language</label>
         <select id="languageSwitcher" class="control-chip" aria-label="Language switcher"></select>
+        <select id="paletteSwitcher" class="control-chip" aria-label="Palette switcher"></select>
         <button id="themeToggle" class="control-chip" type="button" aria-label="Toggle dark mode"></button>
       </div>
     </header>
@@ -98,7 +99,7 @@
   </main>
 
   <script src="js/i18n.js"></script>
-  <script src="js/app-shell.js"></script>
+  <script type="module" src="js/app-shell.js"></script>
   <script src="js/config.js"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
